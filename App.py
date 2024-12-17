@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
 import pymysql
 
@@ -6,10 +7,10 @@ app.secret_key = 'tu_clave_secreta'
 
 def get_bd():
         connection=pymysql.connect(
-            host='sql5.freemysqlhosting.net', 
-            user='sql5750999',          
-            password='qUwcjLjWiF', 
-            database='sql5750999',
+            host='sql3.freesqldatabase.com', 
+            user='sql3752687',          
+            password='DBZgJDwsLM', 
+            database='sql3752687',
             port=3306           
         )
         return connection
@@ -231,5 +232,6 @@ def editarVehiculo(id_vehiculo):
     return redirect(url_for('dashboard_trabajador'))
 
 
-if __name__ == "__main__":
-    app.run(port=3000, debug=True)
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
