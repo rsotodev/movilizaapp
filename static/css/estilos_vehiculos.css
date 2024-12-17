@@ -1,0 +1,37 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color:rgb(0, 9, 69);
+}
+
+body header img{
+    width: 100px;
+    filter: invert(90%);
+}
+
+header div{
+    display: flex;
+    flex-direction: row;
+    padding-right: 2%;
+}
+
+header div ul {
+    display: flex;
+    flex-direction: row;
+}
+
+.secciones li{
+    margin-right: 20px;
+
+}
+
+header div ul li a{
+    color: white;
+    text-decoration: none;   
+}

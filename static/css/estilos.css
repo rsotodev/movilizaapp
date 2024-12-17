@@ -1,0 +1,54 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color:rgb(0, 9, 69);
+}
+
+body header img{
+    width: 100px;
+    filter: invert(90%);
+}
+
+header div{
+    display: flex;
+    flex-direction: row;
+    padding-right: 2%;
+}
+
+header div ul {
+    display: flex;
+    flex-direction: row;
+}
+
+.secciones li{
+    margin-right: 20px;
+
+}
+
+header div ul li a{
+    color: white;
+    text-decoration: none;   
+}
+
+.seccion_1{
+    padding: 15%;
+    background-image: url(../images/img_viajeros2.png);
+    background-position: center;
+    height: 90vh;
+}
+
+.menu_reserva{
+    display: flex;
+    flex-direction: row;
+    background-color: rgb(0, 9, 69, 0.7);
+}
+
+.menu_reserva div{
+    margin-left: 20px;
+}

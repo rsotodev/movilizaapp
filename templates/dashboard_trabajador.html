@@ -1,0 +1,175 @@
+
+{% extends 'layout.html' %}
+
+{% block content %}
+
+    <h1 class="text-center mt5 mb5">Registro de Vehículos</h1>
+    <div class="container">
+        <div class="card shadow">
+            <div class="card-body">
+                <form action="/vehiculo" method="post">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Placa</label>
+                            <input type="text" class="form-control mb-3" name="placa">
+                        </div>
+                        <div class="col">
+                            <label>Marca</label>
+                            <input type="text" class="form-control mb-3" name="marca">
+                        </div>
+                        <div class="col">
+                            <label>Modelo</label>
+                            <input type="text" class="form-control mb-3" name="modelo">
+                        </div>
+                    </div>
+
+                    
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Año fabricación</label>
+                            <input type="text" class="form-control mb-3" name="fabricacion">
+                        </div>
+                        <div class="col">
+                            <label>Color</label>
+                            <input type="text" class="form-control mb-3" name="color">
+                        </div>
+                        <div class="col">
+                            <label>Último mantenimiento</label>
+                            <input type="date" class="form-control mb-3" name="fecha_ultimo_mantenimiento">
+                        </div>
+                    </div>
+
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Kilometraje</label>
+                            <input type="text" class="form-control mb-3" name="kilometraje">
+                        </div>
+                        <div class="col">
+                            <label>Precio por día</label>
+                            <input type="text" class="form-control mb-3" name="precio_por_dia">
+                        </div>
+                        <div class="col">
+                            <label>Estado</label>
+                            <select class="form-control mb-3" name="estado">
+                                <option value="disponible">Disponible</option>
+                                <option value="alquilado">Alquilado</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label>Sucursal</label>
+                            <input type="text" class="form-control mb-3" name="sucursal">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <button class="btn btn-primary mb-3 mt-4" type="submit">Guardar</button>
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+        </div>
+
+        <br>
+        <div class="card shadow">
+            <!--Tabla-->
+            <table class="table table.bordered">
+                <thead>
+                    <th scope="col">ID</th>
+                    <th scope="col">Placa</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Modelo</th>
+                    <th scope="col">Año fabricación</th>
+                    <th scope="col">Color</th>
+                    <th scope="col">Último mantenimiento</th>
+                    <th scope="col">Kilometraje</th>
+                    <th scope="col">Precio por día</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Sucursal</th>
+                    <th scope="col">Acciones</th>
+                </thead>
+            
+            <tbody>
+                {% for d in vehiculos%}
+                <tr>
+                    <td>{{d.Id_vehiculo}}</td>
+                    <td>{{d.placa}}</td>
+                    <td>{{d.marca}}</td>
+                    <td>{{d.modelo}}</td>
+                    <td>{{d.fabricacion}}</td>
+                    <td>{{d.color}}</td>
+                    <td>{{d.fecha_ultimo_mantenimiento}}</td>
+                    <td>{{d.kilometraje}}</td>
+                    <td>{{d.precio_por_dia}}</td>
+                    <td>{{d.estado}}</td>
+                    <td>{{d.sucursal}}</td>
+                    <td><button class="btn btn-primary btn-sm" id="btn-edit{{d.Id_vehiculo}}" data-bs-toggle = "modal" data-bs-target = "#modal{{d.Id_vehiculo}}">Editar</button></td>
+                    <td>
+                        <form action="{{ url_for('eliminarVehiculo', id_vehiculo=d.Id_vehiculo) }}" method="POST">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <!--ventana modal-->
+                <div class="modal fade" id="modal{{d.Id_vehiculo}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">{{d.marca}} {{d.modelo}}</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/editar/{{d.Id_vehiculo}}" method="post">
+
+                                <label>Placa</label>
+                                <input type="text" class="form-control mb-3" name="placa" value="{{d.placa}}">
+                                <label>Marca</label>
+                                <input type="text" class="form-control mb-3" name="marca" value="{{d.marca}}">
+                                <label>Modelo</label>
+                                <input type="text" class="form-control mb-3" name="modelo" value="{{d.modelo}}">
+                                <label>Año fabricación</label>
+                                <input type="text" class="form-control mb-3" name="fabricacion" value="{{d.fabricacion}}">
+                                <label>Color</label>
+                                <input type="text" class="form-control mb-3" name="color" value="{{d.color}}">
+                                <label>Último mantenimiento</label>
+                                <input type="date" class="form-control mb-3" name="fecha_ultimo_mantenimiento" value="{{d.fecha_ultimo_mantenimiento}}">
+                                <label>Kilometraje</label>
+                                <input type="text" class="form-control mb-3" name="kilometraje" value="{{d.kilometraje}}">
+                                <label>Precio por día</label>
+                                <input type="text" class="form-control mb-3" name="precio_por_dia" value="{{d.precio_por_dia}}">
+                                <label>Estado</label>
+                                <select class="form-control mb-3" name="estado" value="{{d.estado}}">
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Alquilado">Alquilado</option>
+                                </select>
+                                <label>Sucursal</label>
+                                <input type="text" class="form-control mb-3" name="sucursal" value="{{d.sucursal}}">
+                                
+                                
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                          <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
+                      </div>
+                    </div>
+                  </div>
+                
+                  {% endfor %}
+                
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    {% endblock %}
