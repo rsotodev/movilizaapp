@@ -119,6 +119,10 @@ def dashboard():
     
 @app.route('/dashboard_trabajador')
 def dashboard_trabajador():
+    return render_template('dashboard_trabajador.html')
+
+@app.route('/menu_vehiculos') 
+def menu_vehiculos():
     connection = get_bd()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM vehiculo")
@@ -132,9 +136,8 @@ def dashboard_trabajador():
     connection.close()
 
     # Pasar los vehículos al template
-    return render_template('dashboard_trabajador.html', vehiculos=vehiculos_dict)
- 
-    
+    return render_template('menu_vehiculos.html', vehiculos=vehiculos_dict)
+
 @app.route('/vehiculo', methods=['POST'])
 def addVehiculo():
     # Obtener datos del formulario
@@ -172,24 +175,6 @@ def addVehiculo():
         flash('Faltan datos, no se pudo registrar el vehículo', 'danger')
 
     return redirect(url_for('dashboard_trabajador'))
-
-
-@app.route('/eliminar/<int:id_vehiculo>', methods=['POST'])
-def eliminarVehiculo(id_vehiculo):
-    # Eliminar el vehículo de la base de datos
-    connection = get_bd()
-    cursor = connection.cursor()
-
-    sql = "DELETE FROM vehiculo WHERE id_vehiculo = %s"
-    cursor.execute(sql, (id_vehiculo,))
-    connection.commit()
-
-    cursor.close()
-    connection.close()
-
-    flash('Vehículo eliminado correctamente', 'danger')
-    return redirect(url_for('dashboard_trabajador'))
-
 
 @app.route('/editar/<int:id_vehiculo>', methods=['POST'])
 def editarVehiculo(id_vehiculo):
@@ -230,6 +215,37 @@ def editarVehiculo(id_vehiculo):
         flash('Faltan datos, no se pudo actualizar el vehículo', 'danger')
 
     return redirect(url_for('dashboard_trabajador'))
+
+@app.route('/eliminar/<int:id_vehiculo>', methods=['POST'])
+def eliminarVehiculo(id_vehiculo):
+    # Eliminar el vehículo de la base de datos
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    sql = "DELETE FROM vehiculo WHERE id_vehiculo = %s"
+    cursor.execute(sql, (id_vehiculo,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    flash('Vehículo eliminado correctamente', 'danger')
+    return redirect(url_for('dashboard_trabajador'))
+
+@app.route('/clientes')
+def menu_clientes():
+    cursor = db.database.cursor()
+    cursor.execute("SELECT * FROM cliente")
+    myresult = cursor.fetchall()
+
+    # Convertir los datos a diccionario
+    insertObject = []
+    columnNames = [column[0] for column in cursor.description]
+    for record in myresult:
+        insertObject.append(dict(zip(columnNames, record)))
+    cursor.close()
+
+    return render_template('menu_clientes.html', data=insertObject)
 
 
 if __name__ == '__main__':
