@@ -234,14 +234,15 @@ def eliminarVehiculo(id_vehiculo):
 
 @app.route('/clientes')
 def menu_clientes():
-    cursor = db.database.cursor()
-    cursor.execute("SELECT * FROM cliente")
-    myresult = cursor.fetchall()
+    connection = get_bd()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM clientes")
+    clientes = cursor.fetchall()
 
     # Convertir los datos a diccionario
     insertObject = []
     columnNames = [column[0] for column in cursor.description]
-    for record in myresult:
+    for record in clientes:
         insertObject.append(dict(zip(columnNames, record)))
     cursor.close()
 
