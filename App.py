@@ -1,9 +1,16 @@
 import os
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
 import pymysql
+from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'
+UPLOAD_FOLDER = 'static/images'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_bd():
         connection=pymysql.connect(
@@ -170,11 +177,11 @@ def addVehiculo():
         cursor.close()
         connection.close()
 
-        flash('Vehículo registrado correctamente', 'success')
+        flash('Cliente registrado correctamente', 'success')
     else:
-        flash('Faltan datos, no se pudo registrar el vehículo', 'danger')
+        flash('Faltan datos, no se pudo registrar el cliente', 'danger')
 
-    return redirect(url_for('dashboard_trabajador'))
+    return redirect(url_for('menu_vehiculos'))
 
 @app.route('/editar/<int:id_vehiculo>', methods=['POST'])
 def editarVehiculo(id_vehiculo):
@@ -184,13 +191,16 @@ def editarVehiculo(id_vehiculo):
     modelo = request.form['modelo']
     fabricacion = request.form['fabricacion']
     color = request.form['color']
+    transmision = request.form['transmision']
+    nro_asientos = request.form['nro_asientos']
     fecha_ultimo_mantenimiento = request.form['fecha_ultimo_mantenimiento']
     kilometraje = request.form['kilometraje']
     precio_por_dia = request.form['precio_por_dia']
     estado = request.form['estado']
     sucursal = request.form['sucursal']
+    promocion = request.form.get('promocion')
 
-    if placa and marca and modelo and fabricacion and color and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal:
+    if placa and marca and modelo and fabricacion and color and transmision and nro_asientos and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal:
         # Conectar a la base de datos
         connection = get_bd()
         cursor = connection.cursor()
@@ -199,13 +209,23 @@ def editarVehiculo(id_vehiculo):
         sql = """
             UPDATE vehiculo 
             SET placa = %s, marca = %s, modelo = %s, fabricacion = %s, color = %s, 
-                fecha_ultimo_mantenimiento = %s, kilometraje = %s, precio_por_dia = %s, 
-                estado = %s, sucursal = %s 
+                transmision = %s, nro_asientos = %s, fecha_ultimo_mantenimiento = %s, 
+                kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s
             WHERE id_vehiculo = %s
         """
-        data = (placa, marca, modelo, fabricacion, color, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_vehiculo)
+        data = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_vehiculo)
         cursor.execute(sql, data)
         connection.commit()
+
+        # Si el checkbox de promoción está marcado, agregar el vehículo a la tabla de promociones
+        if promocion:
+            sql_promocion = """
+                INSERT INTO promociones (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            data_promocion = (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal)
+            cursor.execute(sql_promocion, data_promocion)
+            connection.commit()
 
         cursor.close()
         connection.close()
@@ -214,7 +234,7 @@ def editarVehiculo(id_vehiculo):
     else:
         flash('Faltan datos, no se pudo actualizar el vehículo', 'danger')
 
-    return redirect(url_for('dashboard_trabajador'))
+    return redirect(url_for('menu_vehiculos'))
 
 @app.route('/eliminar/<int:id_vehiculo>', methods=['POST'])
 def eliminarVehiculo(id_vehiculo):
@@ -230,24 +250,185 @@ def eliminarVehiculo(id_vehiculo):
     connection.close()
 
     flash('Vehículo eliminado correctamente', 'danger')
-    return redirect(url_for('dashboard_trabajador'))
+    return redirect(url_for('menu_vehiculos'))
 
-@app.route('/clientes')
+@app.route('/menu_clientes')
 def menu_clientes():
     connection = get_bd()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM clientes")
-    clientes = cursor.fetchall()
+    clientes = cursor.fetchall()    
 
     # Convertir los datos a diccionario
-    insertObject = []
-    columnNames = [column[0] for column in cursor.description]
-    for record in clientes:
-        insertObject.append(dict(zip(columnNames, record)))
+    column_names = [column[0] for column in cursor.description]
+    clientes_dict = [dict(zip(column_names, record)) for record in clientes]
+        
+    connection.close()
     cursor.close()
 
-    return render_template('menu_clientes.html', data=insertObject)
+    return render_template('menu_clientes.html', clientes=clientes_dict)
 
+
+@app.route('/cliente', methods=['POST'])
+def addCliente():
+    nombres = request.form['nombres']
+    apellido_paterno = request.form['apellido_paterno']
+    apellido_materno = request.form['apellido_materno']
+    tipo_documento = request.form['tipo_documento']
+    numero_documento = request.form['numero_documento']
+    celular = request.form['celular']    
+    fecha_nacimiento = request.form['fecha_nacimiento']
+    correo_electronico = request.form['correo_electronico']
+    contrasena = request.form['contrasena']
+
+    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and correo_electronico and contrasena:
+        connection = get_bd()
+        cursor = connection.cursor()
+        sql = """
+                INSERT INTO clientes
+                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena)
+        cursor.execute(sql, data)
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        flash('Vehículo registrado correctamente', 'success')
+    else:
+        flash('Faltan datos, no se pudo registrar el vehículo', 'danger')
+
+    return redirect(url_for('menu_clientes'))
+
+@app.route('/eliminar_cliente/<int:id_cliente>', methods=['POST'])
+def eliminarCliente(id_cliente):
+    connection = get_bd()
+    cursor = connection.cursor()
+    
+    sql = "DELETE FROM clientes WHERE id_cliente = %s"
+    cursor.execute(sql, (id_cliente,))
+    connection.commit()
+    
+    cursor.close()
+    connection.close()
+
+    # Mensaje para la eliminación exitosa
+    flash('Cliente eliminado', 'danger')
+
+    return redirect(url_for('menu_clientes'))
+
+@app.route('/editar_cliente/<int:id_cliente>', methods=['POST'])
+def editarCliente(id_cliente):
+    nombres = request.form['nombres']
+    apellido_paterno = request.form['apellido_paterno']
+    apellido_materno = request.form['apellido_materno']
+    tipo_documento = request.form['tipo_documento']
+    numero_documento = request.form['numero_documento']
+    fecha_nacimiento = request.form['fecha_nacimiento']
+    celular = request.form['celular']
+    correo_electronico = request.form['correo_electronico']
+    contrasena = request.form['contrasena']
+
+    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and correo_electronico and contrasena:
+        
+        connection = get_bd()
+        cursor = connection.cursor()
+        
+        sql = """
+        UPDATE clientes SET nombres = %s, apellido_paterno = %s, apellido_materno = %s, tipo_documento = %s, 
+                 numero_documento = %s, fecha_nacimiento = %s, celular = %s, correo_electronico = %s, contrasena = %s 
+                 WHERE id_cliente = %s
+        """
+        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, fecha_nacimiento, celular, correo_electronico, contrasena, id_cliente)
+        
+        cursor.execute(sql, data)
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        # Mensaje para la edición exitosa
+        flash('Cambios guardados', 'success')
+
+    return redirect(url_for('menu_clientes'))
+
+@app.route("/menu_promociones") 
+def menu_promociones():
+    connection = get_bd()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM promociones")
+    promociones = cursor.fetchall()
+
+    # Convertir los datos a diccionario
+    column_names = [column[0] for column in cursor.description]
+    promociones_dict = [dict(zip(column_names, record)) for record in promociones]
+
+    cursor.close()
+    connection.close()
+
+    # Pasar los vehículos al template
+    return render_template('menu_promociones.html', promociones=promociones_dict)
+
+@app.route('/editar_promocion/<int:id_promocion>', methods=['POST'])
+def editarPromocion(id_promocion):
+    # Obtener datos del formulario
+    placa = request.form['placa']
+    marca = request.form['marca']
+    modelo = request.form['modelo']
+    fabricacion = request.form['fabricacion']
+    color = request.form['color']
+    transmision = request.form['transmision']
+    nro_asientos = request.form['nro_asientos']
+    fecha_ultimo_mantenimiento = request.form['fecha_ultimo_mantenimiento']
+    kilometraje = request.form['kilometraje']
+    precio_por_dia = request.form['precio_por_dia']
+    estado = request.form['estado']
+    sucursal = request.form['sucursal']
+
+    if placa and marca and modelo and fabricacion and color and transmision and nro_asientos and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal:
+        # Conectar a la base de datos
+        connection = get_bd()
+        cursor = connection.cursor()
+
+        # Actualizar los datos de la promoción
+        sql = """
+            UPDATE promociones 
+            SET placa = %s, marca = %s, modelo = %s, fabricacion = %s, color = %s, 
+                transmision = %s, nro_asientos = %s, fecha_ultimo_mantenimiento = %s, 
+                kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s
+            WHERE id_promocion = %s
+        """
+        data = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_promocion)
+        cursor.execute(sql, data)
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        flash('Promoción actualizada correctamente', 'success')
+    else:
+        flash('Faltan datos, no se pudo actualizar la promoción', 'danger')
+
+    return redirect(url_for('menu_promociones'))
+
+@app.route('/eliminar_promocion/<int:id_promocion>', methods=['POST'])
+def eliminarPromocion(id_promocion):
+    # Conectar a la base de datos
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    # Eliminar la promoción
+    sql = "DELETE FROM promociones WHERE id_promocion = %s"
+    cursor.execute(sql, (id_promocion,))
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+    flash('Promoción eliminada correctamente', 'success')
+    return redirect(url_for('menu_promociones'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

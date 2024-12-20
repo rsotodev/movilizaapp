@@ -40,6 +40,14 @@
                             <input type="text" class="form-control mb-3" name="color">
                         </div>
                         <div class="col">
+                            <label>Transmision</label>
+                            <input type="text" class="form-control mb-3" name="color">
+                        </div>
+                        <div class="col">
+                            <label>Numero de asientos</label>
+                            <input type="text" class="form-control mb-3" name="color">
+                        </div>
+                        <div class="col">
                             <label>Último mantenimiento</label>
                             <input type="date" class="form-control mb-3" name="fecha_ultimo_mantenimiento">
                         </div>
@@ -68,7 +76,14 @@
                     <div class="row mb-3">
                         <div class="col">
                             <label>Sucursal</label>
-                            <input type="text" class="form-control mb-3" name="sucursal">
+                            <select class="form-control mb-3" name="sucursal">
+                                <option value="Lince">Lince</option>
+                                <option value="Callao">Callao</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label>Subir Imagen</label>
+                            <input type="file" class="form-control mb-3" name="imagen">
                         </div>
                     </div>
 
@@ -95,6 +110,8 @@
                     <th scope="col">Modelo</th>
                     <th scope="col">Año fabricación</th>
                     <th scope="col">Color</th>
+                    <th scope="col">Transmision</th>
+                    <th scope="col">Numero de asientos</th>
                     <th scope="col">Último mantenimiento</th>
                     <th scope="col">Kilometraje</th>
                     <th scope="col">Precio por día</th>
@@ -112,13 +129,14 @@
                     <td>{{d.modelo}}</td>
                     <td>{{d.fabricacion}}</td>
                     <td>{{d.color}}</td>
+                    <td>{{d.transmision}}</td>
+                    <td>{{d.nro_asientos}}</td>
                     <td>{{d.fecha_ultimo_mantenimiento}}</td>
                     <td>{{d.kilometraje}}</td>
                     <td>{{d.precio_por_dia}}</td>
                     <td>{{d.estado}}</td>
                     <td>{{d.sucursal}}</td>
-                    <td><button class="btn btn-primary btn-sm" id="btn-edit{{d.Id_vehiculo}}" data-bs-toggle = "modal" data-bs-target = "#modal{{d.Id_vehiculo}}">Editar</button></td>
-                    <td>
+                    <td><button class="btn btn-primary btn-sm" id="btn-edit{{d.Id_vehiculo}}" data-bs-toggle = "modal" data-bs-target = "#modal{{d.Id_vehiculo}}">Editar</button>
                         <form action="{{ url_for('eliminarVehiculo', id_vehiculo=d.Id_vehiculo) }}" method="POST">
                             <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                         </form>
@@ -146,6 +164,10 @@
                                 <input type="text" class="form-control mb-3" name="fabricacion" value="{{d.fabricacion}}">
                                 <label>Color</label>
                                 <input type="text" class="form-control mb-3" name="color" value="{{d.color}}">
+                                <label>Transmisión</label>
+                                <input type="text" class="form-control mb-3" name="transmision" value="{{d.transmision}}">
+                                <label>Número de Asientos</label>
+                                <input type="text" class="form-control mb-3" name="nro_asientos" value="{{d.nro_asientos}}">
                                 <label>Último mantenimiento</label>
                                 <input type="date" class="form-control mb-3" name="fecha_ultimo_mantenimiento" value="{{d.fecha_ultimo_mantenimiento}}">
                                 <label>Kilometraje</label>
@@ -158,14 +180,23 @@
                                     <option value="Alquilado">Alquilado</option>
                                 </select>
                                 <label>Sucursal</label>
-                                <input type="text" class="form-control mb-3" name="sucursal" value="{{d.sucursal}}">
-                                
+                                <select class="form-control mb-3" name="sucursal" value="{{d.sucursal}}">
+                                    <option value="Lince">Lince</option>
+                                    <option value="Callao">Callao</option>
+                                </select>
                                 
                         </div>
                         <div class="modal-footer">
                           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                           <button type="submit" class="btn btn-primary">Guardar</button>
+                          <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="promocion" id="promocion{{d.Id_vehiculo}}"{% if d.en_promocion %}checked{% endif %}>
+                            <label class="form-check-label" for="promocion{{d.Id_vehiculo}}">
+                                Agregar a promociones
+                            </label>
                         </div>
+                        </div>
+                    
                     </form>
                       </div>
                     </div>

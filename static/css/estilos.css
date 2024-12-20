@@ -12,8 +12,7 @@ body header{
 
 body header img{
     width: 100px;
-    filter: invert(90%);
-}
+    }
 
 header div{
     display: flex;
@@ -27,6 +26,7 @@ header div ul {
 }
 
 .secciones li{
+    list-style: none;
     margin-right: 20px;
 
 }
@@ -51,4 +51,106 @@ header div ul li a{
 
 .menu_reserva div{
     margin-left: 20px;
+}
+
+.marcas{
+    padding: 2%;
+    background-color: rgb(0, 9, 69);
+    color: white;
+}
+
+.marcas_logos{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5%;
+    background-color: rgb(0, 9, 69);
+    color: white;
+}
+.logos{
+    transform: scale(1);
+    transition: all 1s;
+}
+
+.logos:hover{
+    transform: scale(1.2);
+}
+
+.seccion_2{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5%;
+    background-color: rgb(218, 66, 11);
+    color: white;
+}
+
+.pasos{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5%;
+    background-color: rgb(0, 9, 69);
+    color: white;
+    transform: scaleX(1);
+    transition: all 0.5s;
+}
+
+.pasos:hover{
+    transform: scaleX(1.15);
+}
+
+.pasos div{
+    width: 30%;
+}
+
+.seccion_3{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5%;
+    background-color: rgb(0, 9, 69);
+    color: white;
+}
+
+.accordion-item{
+    width: 90vw
+}
+
+.footer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 2%;
+    background-color: rgb(218, 66, 11);
+    color: white;
+}
+
+.nosotros{
+    width: 100%;
+}
+
+.contacto{
+    padding: 5%;
+    margin-top: -3%;
+    width: 100%;
+}
+
+.redes{
+    margin-top: -4.5%;
+
+    width: 100%;
+}
+
+.contacto_info{
+    display: flex;
+}
+
+.redes_info{
+    display: flex;
 }
