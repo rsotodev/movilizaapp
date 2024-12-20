@@ -19,13 +19,13 @@
               <li><a href="{{ url_for ('cli_vehiculos') }}">VEHICULOS</a></li>
           </ul>
           <ul class="secciones">
-              <li><a href="">REGISTRARSE</a></li>
+              <li><a href="{{ url_for ('cli_registro') }}">REGISTRARSE</a></li>
               <li><a href="{{ url_for ('login') }}">LOGIN</a></li>
           </ul>
         </div>
     </header>
     <main>
-        <h1 class="text-center mt5 mb5">Registro de Clientes</h1>
+        <h1 class="text-center mt5 mb5">Nuevo Registro</h1>
     <div class="container">
         <div class="card shadow">
             <div class="card-body">
@@ -85,11 +85,6 @@
 
             </div>
         </div>
-
-        
-                {% endfor %}
-            </tbody>
-        </table>
     </div>    
     </main>
     <footer class="footer">
