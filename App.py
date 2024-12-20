@@ -1,16 +1,9 @@
 import os
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
 import pymysql
-from werkzeug.utils import secure_filename
-
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta'
-UPLOAD_FOLDER = 'static/images'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_bd():
         connection=pymysql.connect(
@@ -22,9 +15,22 @@ def get_bd():
         )
         return connection
 
-@app.route("/") 
+@app.route('/')
 def index():
-        return render_template("index.html")
+    connection = get_bd()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM promociones")
+    promociones = cursor.fetchall()
+
+    # Convertir los datos a diccionario
+    column_names = [column[0] for column in cursor.description]
+    promociones_dict = [dict(zip(column_names, record)) for record in promociones]
+
+    cursor.close()
+    connection.close()
+
+    # Pasar las promociones al template
+    return render_template('index.html', promociones=promociones_dict)
 
 @app.route("/MovilizaVehiculos", methods=['GET'])
 def cli_vehiculos():
@@ -59,6 +65,10 @@ def cli_vehiculos():
     cur.execute(consulta, parametros)
     vehiculo = cur.fetchall()
 
+    # Convertir los datos a diccionario
+    column_names = [column[0] for column in cur.description]
+    vehiculo_dict = [dict(zip(column_names, record)) for record in vehiculo]
+
     # Consultar en la DB
     cur.execute("SELECT DISTINCT marca FROM vehiculo")
     marcas = cur.fetchall()
@@ -76,7 +86,61 @@ def cli_vehiculos():
     connection.close()
 
     # Renderizar plantilla
-    return render_template("vehiculos.html", vehiculo=vehiculo, marcas=marcas, colores=colores,transmisiones=transmisiones,nro_asientoss=nro_asientoss)
+    return render_template("vehiculos.html", vehiculo=vehiculo_dict, marcas=marcas, colores=colores,transmisiones=transmisiones,nro_asientoss=nro_asientoss)
+
+@app.route('/MovilizaPromociones', methods=['GET'])
+def cli_promociones():
+    connection = get_bd()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM promociones")
+    promociones = cursor.fetchall()
+
+    # Convertir los datos a diccionario
+    column_names = [column[0] for column in cursor.description]
+    promociones_dict = [dict(zip(column_names, record)) for record in promociones]
+
+    cursor.close()
+    connection.close()
+
+    # Pasar las promociones al template
+    return render_template('promociones.html', promociones=promociones_dict)
+
+@app.route('/MovilizaRegistro', methods=['GET','POST'])
+def cli_registro():
+    nombres = request.form['nombres']
+    apellido_paterno = request.form['apellido_paterno']
+    apellido_materno = request.form['apellido_materno']
+    tipo_documento = request.form['tipo_documento']
+    numero_documento = request.form['numero_documento']
+    celular = request.form['celular']    
+    fecha_nacimiento = request.form['fecha_nacimiento']
+    correo_electronico = request.form['correo_electronico']
+    contrasena = request.form['contrasena']
+
+    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and correo_electronico and contrasena:
+        connection = get_bd()
+        cursor = connection.cursor()
+        sql = """
+                INSERT INTO clientes
+                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena)
+        cursor.execute(sql, data)
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        flash('Cliente registrado correctamente', 'success')
+    else:
+        flash('Faltan datos, no se pudo registrar el cliente', 'danger')
+
+    return redirect(url_for('registro'))
+
+@app.route('/Registro')
+def registro():
+    return render_template('registro.html')
 
 @app.route("/Login",methods=["GET", "POST"]) 
 def login():
@@ -132,7 +196,12 @@ def dashboard_trabajador():
 def menu_vehiculos():
     connection = get_bd()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM vehiculo")
+    cursor.execute("""
+                   SELECT v.*, 
+               CASE WHEN p.id_vehiculo IS NOT NULL THEN 1 ELSE 0 END AS en_promocion
+        FROM vehiculo v
+        LEFT JOIN promociones p ON v.id_vehiculo = p.id_vehiculo
+        """)
     vehiculos = cursor.fetchall()
 
     # Convertir los datos a diccionario
@@ -205,6 +274,10 @@ def editarVehiculo(id_vehiculo):
         connection = get_bd()
         cursor = connection.cursor()
 
+         # Obtener la URL de la imagen actual del vehículo
+        cursor.execute("SELECT imagen FROM vehiculo WHERE id_vehiculo = %s", (id_vehiculo,))
+        imagen_url = cursor.fetchone()[0]
+
         # Actualizar los datos del vehículo
         sql = """
             UPDATE vehiculo 
@@ -216,15 +289,23 @@ def editarVehiculo(id_vehiculo):
         data = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_vehiculo)
         cursor.execute(sql, data)
         connection.commit()
+        
+        # Verificar si el vehículo ya está en promociones
+        cursor.execute("SELECT COUNT(*) FROM promociones WHERE id_vehiculo = %s", (id_vehiculo,))
+        en_promocion = cursor.fetchone()[0] > 0
 
-        # Si el checkbox de promoción está marcado, agregar el vehículo a la tabla de promociones
-        if promocion:
+        # Si el checkbox de promoción está marcado y el vehículo no está en promociones, agregarlo
+        if promocion and not en_promocion:
             sql_promocion = """
-                INSERT INTO promociones (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO promociones (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            data_promocion = (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal)
+            data_promocion = (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen_url)
             cursor.execute(sql_promocion, data_promocion)
+            connection.commit()
+        # Si el checkbox de promoción no está marcado y el vehículo está en promociones, eliminarlo
+        elif not promocion and en_promocion:
+            cursor.execute("DELETE FROM promociones WHERE id_vehiculo = %s", (id_vehiculo,))
             connection.commit()
 
         cursor.close()
@@ -268,7 +349,6 @@ def menu_clientes():
 
     return render_template('menu_clientes.html', clientes=clientes_dict)
 
-
 @app.route('/cliente', methods=['POST'])
 def addCliente():
     nombres = request.form['nombres']
@@ -296,9 +376,9 @@ def addCliente():
         cursor.close()
         connection.close()
 
-        flash('Vehículo registrado correctamente', 'success')
+        flash('Cliente registrado correctamente', 'success')
     else:
-        flash('Faltan datos, no se pudo registrar el vehículo', 'danger')
+        flash('Faltan datos, no se pudo registrar el cliente', 'danger')
 
     return redirect(url_for('menu_clientes'))
 
@@ -429,6 +509,14 @@ def eliminarPromocion(id_promocion):
 
     flash('Promoción eliminada correctamente', 'success')
     return redirect(url_for('menu_promociones'))
+
+@app.route('/logout')
+def logout():
+    # Eliminar datos de la sesión
+    session.pop('user_id', None)
+    session.pop('tipo_usuario', None)
+    # Redirigir al usuario a la página de inicio de sesión
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

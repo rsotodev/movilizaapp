@@ -53,6 +53,18 @@ header div ul li a{
     margin-left: 20px;
 }
 
+.seccion_promociones{
+    align-items: center;
+    padding: 3%;
+}
+
+.titulo_promociones{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+
 .marcas{
     padding: 2%;
     background-color: rgb(0, 9, 69);
