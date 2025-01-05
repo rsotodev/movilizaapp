@@ -8,9 +8,9 @@ app.secret_key = 'tu_clave_secreta'
 def get_bd():
         connection=pymysql.connect(
             host='sql3.freesqldatabase.com', 
-            user='sql3752687',          
-            password='DBZgJDwsLM', 
-            database='sql3752687',
+            user='sql3755900',          
+            password='zAG1Nnu6pV', 
+            database='sql3755900',
             port=3306           
         )
         return connection
