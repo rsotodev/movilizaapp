@@ -45,10 +45,17 @@ header div ul li a{
 
 .menu_reserva{
     display: flex;
+    justify-content: space-around;
+    padding: 3%;
     flex-direction: row;
-    background-color: rgb(0, 9, 69, 0.7);
+    color: white;
+    background-color: rgb(0, 9, 69, 0.8);
 }
 
+.boton_reserva{
+    display: flex;
+    padding: 2%;
+}
 .menu_reserva div{
     margin-left: 20px;
 }
@@ -128,6 +135,22 @@ header div ul li a{
     background-color: rgb(0, 9, 69);
     color: white;
 }
+
+.accordion .custom-button {
+    background-color: rgb(218, 66, 11,0.75);
+    color: white;
+    border: 1px solid rgb(218, 66, 11);
+  }
+  
+.accordion .custom-button:not(.collapsed) {
+    background-color: rgb(218, 66, 11);
+    color: white;
+  }
+  
+.accordion-button:focus {
+    box-shadow: none;
+  }
+  
 
 .accordion-item{
     width: 90vw

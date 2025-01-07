@@ -30,7 +30,7 @@ def index():
     connection.close()
 
     # Pasar las promociones al template
-    return render_template('index.html', promociones=promociones_dict)
+    return render_template('index.html', promociones=promociones_dict, enumerate=enumerate)
 
 @app.route("/MovilizaVehiculos", methods=['GET'])
 def cli_vehiculos():
