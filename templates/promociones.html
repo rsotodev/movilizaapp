@@ -14,14 +14,19 @@
         <a href="{{ url_for('index') }}"><img src={{ url_for ("static", filename='images/logo_moviliza1.png') }} alt="logo"></a>
         <div>
           <ul class="secciones">
-              <li><a href="{{ url_for ('cli_promociones') }}">PROMOCIONES</a></li>
-              <li><a href="">RESERVAS</a></li>
-              <li><a href="{{ url_for ('cli_vehiculos') }}">VEHICULOS</a></li>
-          </ul>
-          <ul class="secciones">
-              <li><a href="{{ url_for ('registro') }}">REGISTRARSE</a></li>
-              <li><a href="{{ url_for ('login') }}">LOGIN</a></li>
-          </ul>
+            <li><a href="{{ url_for ('cli_promociones') }}">Promociones</a></li>
+            <li><a href="">Reservas</a></li>
+            <li><a href="{{ url_for ('cli_vehiculos') }}">Vehiculos</a></li>
+        </ul>
+        <ul class="secciones">
+          {% if 'user_id' in session %}
+            <li><a href="">Bienvenido, {{ session['nombres'] }}</a></li>
+            <li>|</li>
+            <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+          {% else %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+          {% endif %}
+        </ul>
         </div>
     </header>
     <main>

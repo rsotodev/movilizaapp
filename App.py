@@ -114,18 +114,18 @@ def cli_registro():
     numero_documento = request.form['numero_documento']
     celular = request.form['celular']    
     fecha_nacimiento = request.form['fecha_nacimiento']
-    correo_electronico = request.form['correo_electronico']
+    usuario = request.form['usuario']
     contrasena = request.form['contrasena']
 
-    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and correo_electronico and contrasena:
+    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and usuario and contrasena:
         connection = get_bd()
         cursor = connection.cursor()
         sql = """
                 INSERT INTO clientes
-                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena) 
+                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena) 
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, correo_electronico, contrasena)
+        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena)
         cursor.execute(sql, data)
         connection.commit()
 
@@ -142,37 +142,40 @@ def cli_registro():
 def registro():
     return render_template('registro.html')
 
-@app.route("/Login",methods=["GET", "POST"]) 
+@app.route("/Login", methods=["GET", "POST"]) 
 def login():
-        if request.method == "POST":
-            username = request.form['username']
-            password = request.form['password']
-            tipo_usuario = request.form['tipo_usuario']
+    if request.method == "POST":
+        tipo_usuario = request.form['tipo_usuario']
+        username = request.form['username']
+        password = request.form['password']
 
-            # Conectar a la base de datos
-            connection = get_bd()
-            cur = connection.cursor()
+        # Conectar a la base de datos
+        connection = get_bd()
+        cur = connection.cursor()
 
-            if tipo_usuario == "trabajador":
-                # Consultar en la base de datos para el empleado
-                cur.execute("SELECT * FROM empleados WHERE usuario = %s AND contrasena = %s", (username, password))
-            else:
-                # Consultar en la base de datos para el usuario común
-                cur.execute("SELECT * FROM clientes WHERE correo_electronico = %s AND contrasena = %s", (username, password))
-            
-            user = cur.fetchone()
-            cur.close()
-            connection.close()
+        if tipo_usuario == "trabajador":
+            # Consultar en la base de datos para el empleado
+            cur.execute("SELECT * FROM empleados WHERE usuario = %s AND contrasena = %s", (username, password))
+        else:
+            # Consultar en la base de datos para el usuario común
+            cur.execute("SELECT * FROM clientes WHERE usuario = %s AND contrasena = %s", (username, password))
+        
+        user = cur.fetchone()
+        cur.close()
+        connection.close()
 
-            if user:
-                # Guardar información de usuario en sesión
-                session['user_id'] = user[0]
-                session['tipo_usuario'] = tipo_usuario
-                return redirect(url_for('dashboard'))
-            else:
-                return "Usuario o contraseña incorrectos"
+        if user:
+            # Guardar información de usuario en sesión
+            full_name=user[1]
+            first_name=full_name.split()[0]
+            session['user_id'] = user[0]
+            session['tipo_usuario'] = tipo_usuario
+            session['nombres'] = first_name
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Usuario o contraseña incorrectos', 'danger')
 
-        return render_template("login.html")
+    return render_template("login.html")
     
 @app.route("/dashboard")
 def dashboard():
@@ -186,7 +189,7 @@ def dashboard():
         return render_template('dashboard_trabajador.html')
     else:
         # Si es un usuario común, redirigimos a la pagina prinicpal
-        return render_template('index.html')
+        return redirect (url_for('index'))
     
 @app.route('/dashboard_trabajador')
 def dashboard_trabajador():
@@ -516,7 +519,7 @@ def logout():
     session.pop('user_id', None)
     session.pop('tipo_usuario', None)
     # Redirigir al usuario a la página de inicio de sesión
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

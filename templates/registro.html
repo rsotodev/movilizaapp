@@ -14,78 +14,83 @@
         <a href="{{ url_for('index') }}"><img src={{ url_for ("static", filename='images/logo_moviliza1.png') }} alt="logo"></a>
         <div>
           <ul class="secciones">
-              <li><a href="{{ url_for ('cli_promociones') }}">PROMOCIONES</a></li>
-              <li><a href="">RESERVAS</a></li>
-              <li><a href="{{ url_for ('cli_vehiculos') }}">VEHICULOS</a></li>
+              <li><a href="{{ url_for ('cli_promociones') }}">Promociones</a></li>
+              <li><a href="">Reservas</a></li>
+              <li><a href="{{ url_for ('cli_vehiculos') }}">Vehiculos</a></li>
           </ul>
           <ul class="secciones">
-              <li><a href="{{ url_for ('cli_registro') }}">REGISTRARSE</a></li>
-              <li><a href="{{ url_for ('login') }}">LOGIN</a></li>
+            {% if 'user_id' in session %}
+              <li><a href="">Bienvenido, {{ session['nombres'] }}</a></li>
+              <li>|</li>
+              <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+            {% else %}
+              <li><a href="{{ url_for('login') }}">Login</a></li>
+            {% endif %}
           </ul>
         </div>
     </header>
-    <main>
-        <h1 class="text-center mt5 mb5">Nuevo Registro</h1>
-    <div class="container">
-        <div class="card shadow">
-            <div class="card-body">
-                <form action="/MovilizaRegistro" method="POST">
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label>Nombres</label>
-                            <input type="text" class="form-control mb-3" name="nombres">
-                        </div>
-                        <div class="col">
-                            <label>Apellido Paterno</label>
-                            <input type="text" class="form-control mb-3" name="apellido_paterno">
-                        </div>
-                        <div class="col">
-                            <label>Apellido Materno</label>
-                            <input type="text" class="form-control mb-3" name="apellido_materno">
-                        </div>
-                    </div>
+    <main class="registro">
+            <div class="container">
+              <form action="/MovilizaRegistro" method="POST">
+                  <div class="row mb-3">
+                    <h2>Registro</h2>
+                    <p>Por favor, ingrese sus datos para registrarse en la plataforma.</p>
+                      <div class="col">
+                          <label>Nombres</label>
+                          <input type="text" class="form-control mb-3" name="nombres">
+                      </div>
+                      <div class="col">
+                          <label>Apellido Paterno</label>
+                          <input type="text" class="form-control mb-3" name="apellido_paterno">
+                      </div>
+                      <div class="col">
+                          <label>Apellido Materno</label>
+                          <input type="text" class="form-control mb-3" name="apellido_materno">
+                      </div>
+                  </div>
 
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label>Tipo de Documento</label>
-                            <input type="text" class="form-control mb-3" name="tipo_documento">
-                        </div>
-                        <div class="col">
-                            <label>Número de Documento</label>
-                            <input type="text" class="form-control mb-3" name="numero_documento">
-                        </div>
-                        <div class="col">
-                            <label>Fecha de Nacimiento</label>
-                            <input type="date" class="form-control mb-3" name="fecha_nacimiento">
-                        </div>
-                    </div>
+                  <div class="row mb-3">
+                      <div class="col">
+                          <label>Tipo de Documento</label>
+                          <input type="text" class="form-control mb-3" name="tipo_documento">
+                      </div>
+                      <div class="col">
+                          <label>Número de Documento</label>
+                          <input type="text" class="form-control mb-3" name="numero_documento">
+                      </div>
+                      <div class="col">
+                          <label>Fecha de Nacimiento</label>
+                          <input type="date" class="form-control mb-3" name="fecha_nacimiento">
+                      </div>
+                  </div>
 
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label>Celular</label>
-                            <input type="text" class="form-control mb-3" name="celular">
-                        </div>
-                        <div class="col">
-                            <label>Correo Electrónico</label>
-                            <input type="email" class="form-control mb-3" name="correo_electronico">
-                        </div>
-                        <div class="col">
-                            <label>Contraseña</label>
-                            <input type="password" class="form-control mb-3" name="contrasena">
-                        </div>
-                    </div>
+                  <div class="row mb-3">
+                      <div class="col">
+                          <label>Celular</label>
+                          <input type="text" class="form-control mb-3" name="celular">
+                      </div>
+                      <div class="col">
+                          <label>Correo Electrónico</label>
+                          <input type="email" class="form-control mb-3" name="usuario">
+                      </div>
+                      <div class="col">
+                          <label>Contraseña</label>
+                          <input type="password" class="form-control mb-3" name="contrasena">
+                      </div>
+                  </div>
 
-                    <div class="row mb-3">
-                        <div class="col">
-                            <button class="btn btn-primary mb-3 mt-4" type="submit">Registrar</button>
-                        </div>
-                    </div>
+                  <div class="row mb-3">
+                      <div class="col">
+                          <button class="btn btn-primary mb-3 mt-4" type="submit">Registrar</button>
+                      </div>
+                  </div>
 
-                </form>
+              </form>
 
-            </div>
-        </div>
-    </div>    
+          </div>
+      </div>
+      
+  </div>    
     </main>
     <footer class="footer">
         <div class="nosotros">

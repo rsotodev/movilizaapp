@@ -26,6 +26,7 @@ header div ul {
 }
 
 .secciones li{
+    color: white;
     list-style: none;
     margin-right: 20px;
 
@@ -188,4 +189,76 @@ header div ul li a{
 
 .redes_info{
     display: flex;
+}
+.login{
+    background-image: url(../images/img_viajeros3.jpg);
+    background-color: rgba(255, 255, 255, 0.5);
+    background-blend-mode: overlay;
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    overflow: hidden;
+    color: white;
+}
+
+.login-box{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 60%;
+    height:65vh;
+    margin: auto;
+    margin-top:7% ;
+    padding: 3%;
+}
+
+.login-title{
+    background-color: rgb(0, 9, 69);
+    background-image: url(../images/logo_moviliza1.png);
+    background-size: cover;
+    width: 100%;
+}
+
+.login-form{
+    padding: 4% 4% 0 4%;
+    background-color: rgb(0, 0,0,0.8);
+    width: 100%;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+}
+
+.form-control, .form-select{
+    margin: 4% 0 3% 0;
+}
+.btn{
+    width: 100%;
+    margin: auto;
+    color: white;
+    background-color: rgb(0, 9, 69);
+}
+
+.btn:hover{
+    background-color: rgb(0,9,69,0.8);
+}
+
+.registro{
+    background-image: url(../images/img_viajeros3.jpg);
+    background-color: rgba(255, 255, 255, 0.2);
+    background-blend-mode: overlay;
+    background-size: cover;
+    background-position: center;
+    height: 90vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+.container{
+    margin-top: 5%;
+    padding: 2%;
+    width: 100%;
+    background-color: rgb(0, 0,0,0.8);
+    color: white;
 }
