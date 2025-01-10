@@ -20,7 +20,7 @@
             </ul>
             <ul class="secciones">
               {% if 'user_id' in session %}
-                <li><a href="">Bienvenido, {{ session['nombres'] }}</a></li>
+                <li><a href="">{{ session['nombres'] }}</a></li>
                 <li>|</li>
                 <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
               {% else %}
@@ -37,18 +37,18 @@
         <div class="login-form">
         <form method="POST" action="/Login">
             <label for="username">Correo:</label>
-            <input type="text" class="form-control" id="username" name="username" required  placeholder="tucorreo@gmail.com">
+            <input type="text" class="form-control form-control-login" id="username" name="username" required  placeholder="tucorreo@gmail.com">
          
             <label for="password">Contraseña:</label>
-            <input type="password" class="form-control" id="password" name="password" required placeholder="********">
+            <input type="password" class="form-control form-control-login" id="password" name="password" required placeholder="********">
             
             <label for="tipo_usuario">Tipo de Usuario:</label>
-            <select class="form-select" id="tipo_usuario" name="tipo_usuario">
+            <select class="form-select-login" id="tipo_usuario" name="tipo_usuario">
               <option value="usuario">Usuario</option>  
               <option value="trabajador">Trabajador</option>
             </select>
             <p>¿No tienes cuenta? <a href="{{ url_for('registro') }}">Registrate</a></p>
-            <button class="btn" type="submit">Iniciar sesión</button>
+            <button class="btn btn-login" type="submit">Iniciar sesión</button>
         </form>
         </div>
       </div>

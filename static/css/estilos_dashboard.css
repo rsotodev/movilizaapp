@@ -35,3 +35,16 @@ header div ul li a{
     color: white;
     text-decoration: none;   
 }
+
+.container_dashboard{
+    color: white;
+    background-image: url(../images/logo_moviliza1.png);
+    background-size: 60% 60%;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+}
+
+.body_dashboard_trabajador{
+    background-color: rgb(0, 0, 0,0.8);
+}

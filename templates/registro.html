@@ -20,7 +20,7 @@
           </ul>
           <ul class="secciones">
             {% if 'user_id' in session %}
-              <li><a href="">Bienvenido, {{ session['nombres'] }}</a></li>
+              <li><a href="">{{ session['nombres'] }}</a></li>
               <li>|</li>
               <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
             {% else %}
@@ -30,7 +30,7 @@
         </div>
     </header>
     <main class="registro">
-            <div class="container">
+            <div class="container_record">
               <form action="/MovilizaRegistro" method="POST">
                   <div class="row mb-3">
                     <h2>Registro</h2>
