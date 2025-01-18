@@ -256,6 +256,11 @@ header div ul li a{
     overflow: hidden;
 }
 
+.btn-registro{
+    color: white;
+    background-color: rgb(0, 9, 69);
+}
+
 .container_record{
     margin-top: 3%;
     padding: 2%;
@@ -281,4 +286,34 @@ header div ul li a{
 .btn-filtro{
     color: white;
     background-color: rgb(0, 9, 69);
+}
+
+.data_reserva{
+    background-image: url(../images/img_viajeros3.jpg);
+    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgb(0, 0,0,0.8);
+    background-blend-mode: overlay;
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.reserva_vehiculo{
+    margin-top: 3%;
+    padding: 2%;
+    width: 100%;
+    color: white;
+}
+
+.reserva_cliente{
+    margin-top: 3%;
+    padding: 2%;
+    width: 100%;
+    color: white;
+}
+
+.btn-more{
+    background-color: rgb(0, 9, 69);
+    color: white;
 }

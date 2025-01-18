@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
+from pymysql.cursors import DictCursor
 import pymysql
 
 app = Flask(__name__)
@@ -8,9 +9,9 @@ app.secret_key = 'tu_clave_secreta'
 def get_bd():
         connection=pymysql.connect(
             host='sql3.freesqldatabase.com', 
-            user='sql3755900',          
-            password='zAG1Nnu6pV', 
-            database='sql3755900',
+            user='sql3757216',          
+            password='6BUYsnedVP', 
+            database='sql3757216',
             port=3306           
         )
         return connection
@@ -116,16 +117,17 @@ def cli_registro():
     fecha_nacimiento = request.form['fecha_nacimiento']
     usuario = request.form['usuario']
     contrasena = request.form['contrasena']
+    direccion= request.form['direccion']
 
-    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and usuario and contrasena:
+    if nombres and apellido_paterno and apellido_materno and tipo_documento and numero_documento and fecha_nacimiento and celular and usuario and contrasena and direccion:
         connection = get_bd()
         cursor = connection.cursor()
         sql = """
                 INSERT INTO clientes
-                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena) 
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena, direccion) 
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena)
+        data = (nombres, apellido_paterno, apellido_materno, tipo_documento, numero_documento, celular, fecha_nacimiento, usuario, contrasena, direccion)
         cursor.execute(sql, data)
         connection.commit()
 
@@ -168,9 +170,17 @@ def login():
             # Guardar información de usuario en sesión
             full_name=user[1]
             first_name=full_name.split()[0]
+            cargo=user[8]
             session['user_id'] = user[0]
             session['tipo_usuario'] = tipo_usuario
             session['nombres'] = first_name
+            session['nombre_compl']=user[1]
+            session['apellidop']=user[2]
+            session['apellidom']=user[3]
+            session['tipo_doc']=user[4]
+            session['num_doc']=user[5]
+            session['direccion']=user[10]
+            session['cargo'] = cargo
             return redirect(url_for('dashboard'))
         else:
             flash('Usuario o contraseña incorrectos', 'danger')
@@ -193,7 +203,34 @@ def dashboard():
     
 @app.route('/dashboard_trabajador')
 def dashboard_trabajador():
-    return render_template('dashboard_trabajador.html')
+    if 'user_id' in session:  # Asegurarse de que el usuario esté autenticado
+        connection = get_bd()
+        cursor = connection.cursor()
+
+        # Consulta para obtener el total de ingresos por día
+        query = """
+            SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
+            FROM ingresos
+            GROUP BY DATE(fecha)
+            ORDER BY fecha_ingreso DESC
+        """
+        cursor.execute(query)
+        ingresos = cursor.fetchall()
+
+        print(ingresos)
+
+        
+        cursor.close()
+        connection.close()
+
+        # Convertir los datos en un formato más manejable para la plantilla
+        ingresos_format = [
+            {'fecha': ingreso[0], 'total': ingreso[1]} for ingreso in ingresos
+        ]
+
+        return render_template('dashboard_trabajador.html', ingresos=ingresos_format)
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/menu_vehiculos') 
 def menu_vehiculos():
@@ -520,6 +557,75 @@ def logout():
     session.pop('tipo_usuario', None)
     # Redirigir al usuario a la página de inicio de sesión
     return redirect(url_for('index'))
+
+@app.route('/reserva/<int:vehiculo_id>', methods =['GET','POST'])
+def reserva(vehiculo_id):
+    connection=get_bd()
+    cursor=connection.cursor(DictCursor)
+    cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (vehiculo_id,))
+    vehiculo=cursor.fetchone()
+    cursor.close()
+    connection.close()
+    
+    costo_total=None
+    if request.method == 'POST':
+            # Obtener las fechas del formulario
+            fecha_inicio = request.form['fecha_inicio']
+            fecha_fin = request.form['fecha_fin']
+            precio_por_dia = float(vehiculo['precio_por_dia'])
+
+            # Calcular la diferencia de días
+            from datetime import datetime
+            inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+            fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
+            diff_days = (fin - inicio).days
+
+            if diff_days > 0:
+                costo_total = diff_days * precio_por_dia
+            else:
+                costo_total = "Fechas inválidas, verifica tu selección."
+    
+    if 'user_id' in session and vehiculo:  
+        user_data = {
+                'id': session.get('user_id'),
+                'nombre_compl': session.get('nombre_compl'),
+                'apellidop':session.get('apellidop'),
+                'apellidom':session.get('apellidom'),
+                'tipo_doc':session.get('tipo_doc'),
+                'num_doc':session.get('num_doc'),
+                'direccion':session.get('direccion')
+            }
+        
+        return render_template('reserva.html', vehiculo=vehiculo, user=user_data, costo_total=costo_total)
+    else:
+        return "Auto no encontrado", 404
+
+@app.route('/pagar', methods=['POST'])
+def pagar():
+    if 'user_id' in session:
+        connection = get_bd()
+        cursor = connection.cursor()
+
+        # Obtener datos del formulario y de la sesión
+        id_usuario = session['user_id']
+        id_vehiculo = request.form['id_vehiculo']
+        monto = request.form['monto']
+
+        # Insertar el ingreso en la base de datos
+        query = """
+            INSERT INTO ingresos (id_usuario, id_vehiculo, monto)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query, (id_usuario, id_vehiculo, monto))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return redirect (url_for('index'))
+    else:
+        return "Usuario no autenticado", 403
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

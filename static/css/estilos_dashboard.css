@@ -28,7 +28,7 @@ header div ul {
 .secciones li{
     list-style: none;
     margin-right: 20px;
-
+    color: white;
 }
 
 header div ul li a{
@@ -39,7 +39,6 @@ header div ul li a{
 .container_dashboard{
     color: white;
     background-image: url(../images/logo_moviliza1.png);
-    background-size: 60% 60%;
     background-repeat: no-repeat;
     background-position: center;
     height: 100vh;
@@ -48,3 +47,19 @@ header div ul li a{
 .body_dashboard_trabajador{
     background-color: rgb(0, 0, 0,0.8);
 }
+
+.dropdown-toggle::after {
+    content: none;
+  }
+
+.dropdown-menu{
+    background-color: rgb(0, 9, 69);
+}
+
+.dropdown-menu > li{
+    padding: 5%;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+  }
