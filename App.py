@@ -1,5 +1,6 @@
-import os
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for, flash
+import matplotlib.pyplot as plt
+import os, io, base64 
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from pymysql.cursors import DictCursor
 import pymysql
 
@@ -8,10 +9,10 @@ app.secret_key = 'tu_clave_secreta'
 
 def get_bd():
         connection=pymysql.connect(
-            host='sql3.freesqldatabase.com', 
-            user='sql3757216',          
-            password='6BUYsnedVP', 
-            database='sql3757216',
+            host='sql12.freesqldatabase.com', 
+            user='sql12758522',          
+            password='SpJkGwigrR', 
+            database='sql12758522',
             port=3306           
         )
         return connection
@@ -196,37 +197,48 @@ def dashboard():
 
     if tipo_usuario == 'trabajador':
         # Si es trabajador, mostramos su dashboard
-        return render_template('dashboard_trabajador.html')
+        return redirect(url_for('dashboard_trabajador'))
     else:
         # Si es un usuario común, redirigimos a la pagina prinicpal
         return redirect (url_for('index'))
     
-@app.route('/dashboard_trabajador')
+@app.route('/dashboard_trabajador', methods=['GET', 'POST'])
 def dashboard_trabajador():
     if 'user_id' in session:  # Asegurarse de que el usuario esté autenticado
         connection = get_bd()
         cursor = connection.cursor()
 
-        # Consulta para obtener el total de ingresos por día
-        query = """
-            SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
-            FROM ingresos
-            GROUP BY DATE(fecha)
-            ORDER BY fecha_ingreso DESC
-        """
-        cursor.execute(query)
-        ingresos = cursor.fetchall()
+       # Obtener las fechas del formulario (si se enviaron)
+        fecha_inicio = request.args.get('fecha_inicio')
+        fecha_fin = request.args.get('fecha_fin')
 
-        print(ingresos)
+        # Consulta SQL con filtro de fechas
+        if fecha_inicio and fecha_fin:
+            query = """
+                SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
+                FROM ingresos
+                WHERE fecha BETWEEN %s AND %s
+                GROUP BY DATE(fecha)
+                ORDER BY fecha_ingreso DESC
+            """
+            cursor.execute(query, (fecha_inicio, fecha_fin))
+        else:
+            # Si no se seleccionaron fechas, traer todos los ingresos
+            query = """
+                SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
+                FROM ingresos
+                GROUP BY DATE(fecha)
+                ORDER BY fecha_ingreso DESC
+            """
+            cursor.execute(query)
+            
+        ingresos = cursor.fetchall()       
+              
+        # Convertir los datos en un formato más manejable para la plantilla
+        ingresos_format = [{'fecha': ingreso[0], 'total': ingreso[1]} for ingreso in ingresos]
 
-        
         cursor.close()
         connection.close()
-
-        # Convertir los datos en un formato más manejable para la plantilla
-        ingresos_format = [
-            {'fecha': ingreso[0], 'total': ingreso[1]} for ingreso in ingresos
-        ]
 
         return render_template('dashboard_trabajador.html', ingresos=ingresos_format)
     else:

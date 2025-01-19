@@ -53,6 +53,7 @@
                                           <p class="card-text">Transmision: {{ promocion.transmision }}</p>
                                           <p class="card-text">Número de asientos: {{ promocion.nro_asientos }}</p>
                                           <a href="#" class="btn btn-more">Ver más</a>
+                                          <a href="{{ url_for('reserva' , vehiculo_id=promocion.Id_vehiculo) }}" class="btn btn-reserva">RESERVAR</a>
                                       </div>
                                       </div>
                                   </div>

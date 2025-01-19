@@ -32,7 +32,16 @@
         </div>
     </header>   
       <h1>Dashboard de Ingresos</h1>
-
+      <form method="GET" action="{{ url_for('dashboard_trabajador') }}">
+        <label for="fecha_inicio">Fecha de inicio:</label>
+        <input type="date" name="fecha_inicio" id="fecha_inicio" required>
+        
+        <label for="fecha_fin">Fecha de fin:</label>
+        <input type="date" name="fecha_fin" id="fecha_fin" required>
+        
+        <button type="submit">Filtrar</button>
+      </form>
+    
     <table border="1">
         <thead>
             <tr>
@@ -49,6 +58,10 @@
             {% endfor %}
         </tbody>
     </table>
+    <div>
+      <h3>Gráfico de Ingresos Diarios</h3>
+      <img src="data:image/png;base64,{{ img_base64 }}" alt="Gráfico de Ingresos">
+  </div>
     <!-- 
     <div class="container container_dashboard text-center my-4">
         <p>Bienvenido/a, {{ session['nombres'] }}</p>
