@@ -9,10 +9,10 @@ app.secret_key = 'tu_clave_secreta'
 
 def get_bd():
         connection=pymysql.connect(
-            host='sql12.freesqldatabase.com', 
-            user='sql12758522',          
-            password='SpJkGwigrR', 
-            database='sql12758522',
+            host='sql10.freesqldatabase.com', 
+            user='sql10760237',          
+            password='qe1PYD5SXL', 
+            database='sql10760237',
             port=3306           
         )
         return connection
@@ -629,7 +629,40 @@ def pagar():
             VALUES (%s, %s, %s)
         """
         cursor.execute(query, (id_usuario, id_vehiculo, monto))
-        connection.commit()
+        
+        try:
+            
+            # Verificar si el vehículo existe antes del UPDATE
+            cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (id_vehiculo,))
+            vehiculo = cursor.fetchone()
+            print("Vehículo encontrado antes del UPDATE:", vehiculo)
+
+            # Si el vehículo existe, actualizar su estado
+            if vehiculo:
+                query_update = """
+                    UPDATE vehiculo
+                    SET estado = 'alquilado'
+                    WHERE Id_vehiculo = %s
+                """
+                cursor.execute(query_update, (id_vehiculo,))
+                print("Filas afectadas por UPDATE:", cursor.rowcount)  # IMPORTANTE
+                
+                connection.commit()
+                print("Transacción confirmada")
+            else:
+                print("ERROR: Vehículo no encontrado, no se pudo actualizar el estado.")
+                connection.rollback()
+
+        except Exception as e:
+            connection.rollback()
+            print("Error en la base de datos:", e)
+            return f"Error: {e}", 5005
+        
+        cursor.execute(query_update, (id_vehiculo,))
+        
+        
+        
+        connection.commit()        
 
         cursor.close()
         connection.close()
@@ -637,6 +670,69 @@ def pagar():
         return redirect (url_for('index'))
     else:
         return "Usuario no autenticado", 403
+
+@app.route('/devolucion/<int:id_alquiler>', methods=['GET', 'POST'])
+def devolucion(id_alquiler):
+    if 'user_id' in session:
+        connection = get_bd()
+        cursor = connection.cursor()
+
+        if request.method == 'POST':
+            # Obtener datos del formulario
+            fecha_devolucion = request.form['fecha_devolucion']
+            estado = request.form['estado']  # 'a tiempo' o 'atrasada'
+
+            # Insertar la devolucion en la base de datos
+            query = """
+                INSERT INTO devoluciones (id_alquiler, fecha_devolucion, estado)
+                VALUES (%s, %s, %s)
+            """
+            cursor.execute(query, (id_alquiler, fecha_devolucion, estado))
+            connection.commit()
+
+            # Actualizar el estado del alquiler a 'finalizado'
+            update_query = """
+                UPDATE alquileres
+                SET estado = 'finalizado'
+                WHERE id = %s
+            """
+            cursor.execute(update_query, (id_alquiler,))
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
+            return redirect(url_for('index'))  # Redirigir a la página principal
+        else:
+            # Obtener los datos del alquiler
+            cursor.execute("SELECT * FROM alquileres WHERE id = %s", (id_alquiler,))
+            alquiler = cursor.fetchone()
+            cursor.close()
+            connection.close()
+
+            return render_template('devolucion.html', alquiler=alquiler)
+
+    else:
+        return "Usuario no autenticado", 403
+
+@app.route('/devoluciones', methods=['GET'])
+def devoluciones():
+    if 'user_id' in session:
+        connection = get_bd()
+        cursor = connection.cursor()
+
+        # Obtener todas las devoluciones
+        cursor.execute("SELECT * FROM devoluciones")
+        devoluciones = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+
+        return render_template('devoluciones_lista.html', devoluciones=devoluciones)
+
+    else:
+        return "Usuario no autenticado", 403
+
 
 
 if __name__ == '__main__':

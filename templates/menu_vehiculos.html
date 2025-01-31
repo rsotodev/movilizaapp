@@ -196,10 +196,35 @@
                                 <label>Precio por día</label>
                                 <input type="text" class="form-control mb-3" name="precio_por_dia" value="{{d.precio_por_dia}}">
                                 <label>Estado</label>
-                                <select class="form-control mb-3" name="estado" value="{{d.estado}}">
-                                    <option value="Disponible">Disponible</option>
-                                    <option value="Alquilado">Alquilado</option>
+                                <select class="form-control mb-3" name="estado" id="estado" onchange="toggleFechaDevolucion()">
+                                    <option value="Disponible" {% if d.estado == 'Disponible' %}selected{% endif %}>Disponible</option>
+                                    <option value="Alquilado {% if d.estado == 'Disponible' %}selected{% endif %}">Alquilado</option>
                                 </select>
+                                <!-- Campo para fecha con retraso, inicialmente oculto con 'hidden' -->
+                                <div id="fechaDevolucionContainer" hidden>
+                                    <label>Fecha de Devolución</label>
+                                    <input type="date" class="form-control mb-3" name="fecha_devolucion">
+                                    <label>Estado de Devolución</label>
+                                    <select class="form-control mb-3" name="estado_devolucion">
+                                        <option value="a tiempo">A tiempo</option>
+                                        <option value="atrasada">Atrasada</option>
+                                    </select>
+                                </div>
+                                <script>
+                                    // Función para mostrar u ocultar el campo de fecha de devolución
+                                    function toggleFechaDevolucion() {
+                                        var estado = document.getElementById("estado").value;
+                                        var fechaDevolucionContainer = document.getElementById("fechaDevolucionContainer");
+                                
+                                        if (estado === "alquilado") {
+                                            fechaDevolucionContainer.removeAttribute("hidden"); // Muestra el campo
+                                        } else {
+                                            fechaDevolucionContainer.setAttribute("hidden", "true"); // Oculta el campo
+                                        }
+                                    }
+                                    
+                                    window.onload = toggleFechaDevolucion;
+                                </script>
                                 <label>Sucursal</label>
                                 <select class="form-control mb-3" name="sucursal" value="{{d.sucursal}}">
                                     <option value="Lince">Lince</option>
@@ -231,6 +256,26 @@
         </table>
         </div>
     </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID Alquiler</th>
+                <th>Fecha de Devolución</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for devolucion in devoluciones %}
+            <tr>
+                <td>{{ devolucion[1] }}</td>  <!-- id_alquiler -->
+                <td>{{ devolucion[2] }}</td>  <!-- fecha_devolucion -->
+                <td>{{ devolucion[3] }}</td>  <!-- estado -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        
 </body>
 </html>
 

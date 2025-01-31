@@ -63,3 +63,7 @@ header div ul li a{
 .dropdown:hover .dropdown-menu {
     display: block;
   }
+
+.container_ingresos{
+    width: 50%;
+}
