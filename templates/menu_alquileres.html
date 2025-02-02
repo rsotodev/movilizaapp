@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moviliza | Alquileres</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo_moviliza1.png') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_dashboard.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('dashboard') }}">
+            <img src="{{ url_for('static', filename='images/logo_moviliza1.png') }}" alt="logo">
+        </a>
+        <div>
+            <ul class="secciones">
+                <li><a href="{{ url_for('menu_vehiculos') }}">Vehículos</a></li>
+                <li><a href="{{ url_for('menu_clientes') }}">Clientes</a></li>
+                <li><a href="{{ url_for('menu_promociones') }}">Promociones</a></li>
+                <li><a href="{{ url_for('menu_alquileres') }}">Alquileres</a></li>
+            </ul>
+            <ul class="secciones">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">{{ session['nombres'] }}</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Cuenta</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                    </ul>
+                </li>
+                <li>|</li>
+                <li>{{ session['cargo'] }}</li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="container mt-4">
+        <h1 class="text-center">Gestión de Alquileres</h1>
+        
+        <form method="get" action="{{ url_for('menu_alquileres') }}" class="mb-3">
+            <label for="estado" class="form-label">Filtrar por Estado:</label>
+            <select name="estado" id="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="activo" {% if request.args.get('estado') == 'activo' %}selected{% endif %}>Activos</option>
+                <option value="finalizado" {% if request.args.get('estado') == 'finalizado' %}selected{% endif %}>Devueltos</option>
+            </select>
+            <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
+        </form>
+        
+
+        <!-- Tabla de alquileres -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Vehículo</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Fecha Devolución</th>
+                        <th>Penalizacion</th>
+                        <th>Acción</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alquiler in alquileres %}
+                    <tr>
+                        <td>{{ alquiler.id }}</td>
+                        <td>{{ alquiler.id_cliente }}</td>
+                        <td>{{ alquiler.Id_vehiculo }}</td>
+                        <td>{{ alquiler.fecha_inicio }}</td>
+                        <td>{{ alquiler.fecha_fin }}</td>
+                        <td>{{ alquiler.fecha_devolucion if alquiler.fecha_devolucion else "No devuelto" }}</td>
+                        <td>
+                            {% if alquiler.penalizacion > 0 %}
+                                <span class="text-danger">S/. {{ alquiler.penalizacion }}</span>
+                            {% else %}
+                                <span class="text-muted">Sin penalización</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('menu_alquileres') }}" method="POST">
+                                <input type="hidden" name="action" value="eliminar">
+                                <input type="hidden" name="alquiler_id" value="{{ alquiler.id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                        <td>
+                            {% if alquiler.estado == 'activo' %}
+                                <form action="{{ url_for('marcar_devuelto', id=alquiler.id) }}" method="POST">
+                                    <button type="submit" class="btn btn-success btn-sm">Marcar como Devuelto</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted">Devuelto</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mt-3">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+        </div>
+    </main>
+</body>
+</html>

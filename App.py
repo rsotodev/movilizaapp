@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os, io, base64 
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from pymysql.cursors import DictCursor
+from datetime import datetime
 import pymysql
 
 app = Flask(__name__)
@@ -204,45 +205,63 @@ def dashboard():
     
 @app.route('/dashboard_trabajador', methods=['GET', 'POST'])
 def dashboard_trabajador():
-    if 'user_id' in session:  # Asegurarse de que el usuario esté autenticado
-        connection = get_bd()
-        cursor = connection.cursor()
-
-       # Obtener las fechas del formulario (si se enviaron)
-        fecha_inicio = request.args.get('fecha_inicio')
-        fecha_fin = request.args.get('fecha_fin')
-
-        # Consulta SQL con filtro de fechas
-        if fecha_inicio and fecha_fin:
-            query = """
-                SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
-                FROM ingresos
-                WHERE fecha BETWEEN %s AND %s
-                GROUP BY DATE(fecha)
-                ORDER BY fecha_ingreso DESC
-            """
-            cursor.execute(query, (fecha_inicio, fecha_fin))
-        else:
-            # Si no se seleccionaron fechas, traer todos los ingresos
-            query = """
-                SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
-                FROM ingresos
-                GROUP BY DATE(fecha)
-                ORDER BY fecha_ingreso DESC
-            """
-            cursor.execute(query)
-            
-        ingresos = cursor.fetchall()       
-              
-        # Convertir los datos en un formato más manejable para la plantilla
-        ingresos_format = [{'fecha': ingreso[0], 'total': ingreso[1]} for ingreso in ingresos]
-
-        cursor.close()
-        connection.close()
-
-        return render_template('dashboard_trabajador.html', ingresos=ingresos_format)
-    else:
+    if 'user_id' not in session:  # Verificar si el usuario está autenticado
         return redirect(url_for('login'))
+
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    # Obtener las fechas del formulario (si se enviaron)
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+
+    # Consulta SQL para obtener ingresos con filtro de fechas
+    if fecha_inicio and fecha_fin:
+        query_ingresos = """
+            SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
+            FROM ingresos
+            WHERE fecha BETWEEN %s AND %s
+            GROUP BY DATE(fecha)
+            ORDER BY fecha_ingreso DESC
+        """
+        cursor.execute(query_ingresos, (fecha_inicio, fecha_fin))
+    else:
+        # Si no se seleccionaron fechas, traer todos los ingresos
+        query_ingresos = """
+            SELECT DATE(fecha) AS fecha_ingreso, SUM(monto) AS total_dia
+            FROM ingresos
+            GROUP BY DATE(fecha)
+            ORDER BY fecha_ingreso DESC
+        """
+        cursor.execute(query_ingresos)
+    
+    ingresos = cursor.fetchall()       
+
+    # Convertir los ingresos en un formato manejable para la plantilla
+    ingresos_format = [{'fecha': ingreso[0], 'total': ingreso[1]} for ingreso in ingresos]
+
+    # 📌 **Consulta SQL para obtener penalizaciones**
+    query_penalizaciones = """
+        SELECT p.id, a.id AS id_alquiler, p.monto, p.motivo 
+        FROM penalizaciones p
+        INNER JOIN alquileres a ON p.id_alquiler = a.id
+        ORDER BY p.id DESC
+    """
+    cursor.execute(query_penalizaciones)
+    penalizaciones = cursor.fetchall()
+
+    # Convertir penalizaciones a diccionario para la plantilla
+    penalizaciones_format = [{'id': p[0], 'id_alquiler': p[1], 'monto': p[2], 'motivo': p[3]} for p in penalizaciones]
+
+    cursor.close()
+    connection.close()
+
+    return render_template(
+        'dashboard_trabajador.html',
+        ingresos=ingresos_format,
+        penalizaciones=penalizaciones_format
+    )
+
 
 @app.route('/menu_vehiculos') 
 def menu_vehiculos():
@@ -358,6 +377,25 @@ def editarVehiculo(id_vehiculo):
         # Si el checkbox de promoción no está marcado y el vehículo está en promociones, eliminarlo
         elif not promocion and en_promocion:
             cursor.execute("DELETE FROM promociones WHERE id_vehiculo = %s", (id_vehiculo,))
+            connection.commit()
+            
+         # Manejar la lógica de devolución
+        fecha_devolucion = request.form.get('fecha_devolucion')
+        estado = request.form.get('estado')
+        if fecha_devolucion and estado:
+            query = """
+                INSERT INTO devoluciones (id_alquiler, fecha_devolucion, estado)
+                VALUES (%s, %s, %s)
+            """
+            cursor.execute(query, (id_vehiculo, fecha_devolucion, estado))
+            connection.commit()
+            # Actualizar el estado del alquiler a 'finalizado'
+            update_query = """
+                UPDATE alquileres
+                SET estado = 'Disponible'
+                WHERE id = %s
+            """
+            cursor.execute(update_query, (id_vehiculo,))
             connection.commit()
 
         cursor.close()
@@ -612,127 +650,272 @@ def reserva(vehiculo_id):
     else:
         return "Auto no encontrado", 404
 
-@app.route('/pagar', methods=['POST'])
-def pagar():
-    if 'user_id' in session:
-        connection = get_bd()
-        cursor = connection.cursor()
 
+    if 'user_id' not in session:
+        return "Usuario no autenticado", 403
+
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    try:
         # Obtener datos del formulario y de la sesión
         id_usuario = session['user_id']
         id_vehiculo = request.form['id_vehiculo']
         monto = request.form['monto']
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_fin = request.form['fecha_fin']
 
         # Insertar el ingreso en la base de datos
-        query = """
+        query_ingreso = """
             INSERT INTO ingresos (id_usuario, id_vehiculo, monto)
             VALUES (%s, %s, %s)
         """
-        cursor.execute(query, (id_usuario, id_vehiculo, monto))
+        cursor.execute(query_ingreso, (id_usuario, id_vehiculo, monto))
+
+        # Verificar si el vehículo existe antes del UPDATE
+        cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (id_vehiculo,))
+        vehiculo = cursor.fetchone()
         
-        try:
+        if vehiculo:
+            # Insertar el alquiler en la base de datos
+            query_alquiler = """
+                INSERT INTO alquileres (cliente_id, vehiculo_id, fecha_inicio, fecha_fin, total)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(query_alquiler, (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, monto))
+
+            # Actualizar el estado del vehículo a "Alquilado"
+            query_update = """
+                UPDATE vehiculo
+                SET estado = 'Alquilado'
+                WHERE Id_vehiculo = %s
+            """
+            cursor.execute(query_update, (id_vehiculo,))
             
-            # Verificar si el vehículo existe antes del UPDATE
-            cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (id_vehiculo,))
-            vehiculo = cursor.fetchone()
-            print("Vehículo encontrado antes del UPDATE:", vehiculo)
-
-            # Si el vehículo existe, actualizar su estado
-            if vehiculo:
-                query_update = """
-                    UPDATE vehiculo
-                    SET estado = 'alquilado'
-                    WHERE Id_vehiculo = %s
-                """
-                cursor.execute(query_update, (id_vehiculo,))
-                print("Filas afectadas por UPDATE:", cursor.rowcount)  # IMPORTANTE
-                
-                connection.commit()
-                print("Transacción confirmada")
-            else:
-                print("ERROR: Vehículo no encontrado, no se pudo actualizar el estado.")
-                connection.rollback()
-
-        except Exception as e:
-            connection.rollback()
-            print("Error en la base de datos:", e)
-            return f"Error: {e}", 5005
-        
-        cursor.execute(query_update, (id_vehiculo,))
-        
-        
-        
-        connection.commit()        
-
-        cursor.close()
-        connection.close()
-
-        return redirect (url_for('index'))
-    else:
-        return "Usuario no autenticado", 403
-
-@app.route('/devolucion/<int:id_alquiler>', methods=['GET', 'POST'])
-def devolucion(id_alquiler):
-    if 'user_id' in session:
-        connection = get_bd()
-        cursor = connection.cursor()
-
-        if request.method == 'POST':
-            # Obtener datos del formulario
-            fecha_devolucion = request.form['fecha_devolucion']
-            estado = request.form['estado']  # 'a tiempo' o 'atrasada'
-
-            # Insertar la devolucion en la base de datos
-            query = """
-                INSERT INTO devoluciones (id_alquiler, fecha_devolucion, estado)
-                VALUES (%s, %s, %s)
-            """
-            cursor.execute(query, (id_alquiler, fecha_devolucion, estado))
             connection.commit()
-
-            # Actualizar el estado del alquiler a 'finalizado'
-            update_query = """
-                UPDATE alquileres
-                SET estado = 'finalizado'
-                WHERE id = %s
-            """
-            cursor.execute(update_query, (id_alquiler,))
-            connection.commit()
-
-            cursor.close()
-            connection.close()
-
-            return redirect(url_for('index'))  # Redirigir a la página principal
         else:
-            # Obtener los datos del alquiler
-            cursor.execute("SELECT * FROM alquileres WHERE id = %s", (id_alquiler,))
-            alquiler = cursor.fetchone()
-            cursor.close()
-            connection.close()
+            connection.rollback()
+            return "ERROR: Vehículo no encontrado, no se pudo actualizar el estado.", 400
 
-            return render_template('devolucion.html', alquiler=alquiler)
+    except Exception as e:
+        connection.rollback()
+        print("Error en la base de datos:", e)
+        return f"Error: {e}", 500
 
-    else:
-        return "Usuario no autenticado", 403
-
-@app.route('/devoluciones', methods=['GET'])
-def devoluciones():
-    if 'user_id' in session:
-        connection = get_bd()
-        cursor = connection.cursor()
-
-        # Obtener todas las devoluciones
-        cursor.execute("SELECT * FROM devoluciones")
-        devoluciones = cursor.fetchall()
-
+    finally:
         cursor.close()
         connection.close()
 
-        return render_template('devoluciones_lista.html', devoluciones=devoluciones)
+    return redirect(url_for('index'))
 
-    else:
+@app.route('/pagar', methods=['POST'])
+def pagar():
+    if 'user_id' not in session:
         return "Usuario no autenticado", 403
 
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    try:
+        # Obtener datos del formulario y de la sesión
+        id_usuario = session['user_id']
+        id_vehiculo = request.form['id_vehiculo']
+        monto = request.form['monto']
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_fin = request.form['fecha_fin']
+
+        # Insertar el ingreso en la base de datos
+        query_ingreso = """
+            INSERT INTO ingresos (id_usuario, id_vehiculo, monto)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(query_ingreso, (id_usuario, id_vehiculo, monto))
+
+        # Verificar si el vehículo existe antes del UPDATE
+        cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (id_vehiculo,))
+        vehiculo = cursor.fetchone()
+        
+        if vehiculo:
+            # Insertar el alquiler en la base de datos (corregido `id_cliente`)
+            query_alquiler = """
+                INSERT INTO alquileres (id_cliente, Id_vehiculo, fecha_inicio, fecha_fin, estado)
+                VALUES (%s, %s, %s, %s, 'activo')
+            """
+            cursor.execute(query_alquiler, (id_usuario, id_vehiculo, fecha_inicio, fecha_fin))
+
+            # Actualizar el estado del vehículo a "Alquilado"
+            query_update = """
+                UPDATE vehiculo
+                SET estado = 'Alquilado'
+                WHERE Id_vehiculo = %s
+            """
+            cursor.execute(query_update, (id_vehiculo,))
+            
+            connection.commit()
+        else:
+            connection.rollback()
+            return "ERROR: Vehículo no encontrado, no se pudo actualizar el estado.", 400
+
+    except Exception as e:
+        connection.rollback()
+        print("Error en la base de datos:", e)
+        return f"Error: {e}", 500
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    return redirect(url_for('index'))
+
+
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    try:
+        # Obtener datos del alquiler
+        cursor.execute("SELECT fecha_fin FROM alquileres WHERE id = %s", (id,))
+        alquiler = cursor.fetchone()
+
+        if not alquiler:
+            return "Error: Alquiler no encontrado", 404
+
+        fecha_fin = alquiler[0]  # La fecha límite de devolución
+        fecha_actual = datetime.today().date()
+
+        # Verificar si hay retraso y calcular penalización
+        penalizacion = 0
+        if fecha_actual > fecha_fin:
+            dias_retraso = (fecha_actual - fecha_fin).days
+            penalizacion = dias_retraso * 10  # Suponiendo que la penalización es 10 por día
+
+        # Actualizar el estado del alquiler y registrar la penalización (si aplica)
+        cursor.execute("UPDATE alquileres SET estado = 'finalizado' WHERE id = %s", (id,))
+        
+        if penalizacion > 0:
+            cursor.execute(
+                "INSERT INTO penalizaciones (id_alquiler, monto, motivo) VALUES (%s, %s, 'Retraso en devolución')",
+                (id, penalizacion)
+            )
+
+        # Liberar el vehículo (volverlo a disponible)
+        cursor.execute("UPDATE vehiculo SET estado = 'Disponible' WHERE Id_vehiculo = (SELECT Id_vehiculo FROM alquileres WHERE id = %s)", (id,))
+
+        connection.commit()
+
+    except Exception as e:
+        connection.rollback()
+        return f"Error: {e}", 500
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    return redirect(url_for('menu_alquileres'))
+
+@app.route('/menu_alquileres', methods=['GET', 'POST'])
+def menu_alquileres():
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    # **Procesar acción de eliminar alquiler**
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'eliminar':  # Eliminar alquiler
+            alquiler_id = request.form['alquiler_id']
+            sql = "DELETE FROM alquileres WHERE id = %s"
+            cursor.execute(sql, (alquiler_id,))
+            connection.commit()
+
+    # **Obtener los alquileres con penalización**
+    estado = request.args.get('estado')  # "activo", "finalizado" o None
+    query = """
+        SELECT a.id, a.id_cliente, a.Id_vehiculo, a.fecha_inicio, a.fecha_fin, a.fecha_devolucion, 
+               COALESCE(p.monto, 0) AS penalizacion, a.estado
+        FROM alquileres a
+        LEFT JOIN penalizaciones p ON a.id = p.id_alquiler
+    """
+    
+    if estado:  # Si hay filtro, aplicarlo
+        query += " WHERE a.estado = %s"
+        cursor.execute(query, (estado,))
+    else:
+        cursor.execute(query)
+
+    # Obtener lista de alquileres
+    alquileres = cursor.fetchall()
+
+    # Convertir los datos a diccionario
+    column_names = [column[0] for column in cursor.description]
+    alquileres_dict = [dict(zip(column_names, record)) for record in alquileres]
+
+    cursor.close()
+    connection.close()
+
+    return render_template('menu_alquileres.html', alquileres=alquileres_dict)
+
+
+from flask import flash, redirect, url_for
+from datetime import datetime
+
+@app.route('/marcar_devuelto/<int:id>', methods=['POST'])
+def marcar_devuelto(id):
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    try:
+        # Obtener la fecha de devolución esperada y el ID del vehículo
+        cursor.execute("SELECT fecha_fin, Id_vehiculo FROM alquileres WHERE id = %s", (id,))
+        alquiler = cursor.fetchone()
+
+        if not alquiler:
+            flash("Error: Alquiler no encontrado.", "danger")
+            return redirect(url_for('menu_alquileres'))
+
+        fecha_fin = alquiler[0]  # Fecha límite de devolución
+        id_vehiculo = alquiler[1]  # ID del vehículo alquilado
+        fecha_actual = datetime.now().date()  # Fecha actual corregida
+
+        # Verificar si hay retraso y calcular penalización
+        dias_retraso = 0
+        penalizacion = 0
+        if fecha_actual > fecha_fin:
+            dias_retraso = (fecha_actual - fecha_fin).days
+            penalizacion = dias_retraso * 25  # Penalización de 25 por día de retraso
+
+        # Marcar el alquiler como "Finalizado" y guardar la fecha real de devolución
+        cursor.execute("UPDATE alquileres SET estado = 'finalizado', fecha_devolucion = %s WHERE id = %s", (fecha_actual, id))
+
+        # Registrar la penalización si hay retraso
+        if penalizacion > 0:
+            cursor.execute(
+                "INSERT INTO penalizaciones (id_alquiler, monto, motivo) VALUES (%s, %s, 'Retraso en devolución')",
+                (id, penalizacion)
+            )
+
+        # Cambiar el estado del vehículo a "Disponible"
+        cursor.execute("UPDATE vehiculo SET estado = 'Disponible' WHERE Id_vehiculo = %s", (id_vehiculo,))
+
+        connection.commit()
+
+        # Mensajes flash dependiendo del retraso
+        if dias_retraso > 0:
+            flash(
+                f"El alquiler fue marcado como devuelto con un retraso de {dias_retraso} días. Penalización aplicada: S/. {penalizacion}.",
+                "warning"
+            )
+        else:
+            flash("El alquiler fue marcado como devuelto sin retrasos.", "success")
+
+    except Exception as e:
+        connection.rollback()
+        flash(f"Error al procesar la solicitud: {e}", "danger")
+        return redirect(url_for('menu_alquileres'))
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    return redirect(url_for('menu_alquileres'))
 
 
 if __name__ == '__main__':

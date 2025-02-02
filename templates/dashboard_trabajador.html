@@ -18,6 +18,7 @@
               <li><a href="{{ url_for ('menu_vehiculos') }}">Vehiculos</a></li>
               <li><a href="{{ url_for ('menu_clientes') }}">Clientes</a></li>
               <li><a href="{{ url_for ('menu_promociones') }}">Promociones</a></li>
+              <li><a href="{{ url_for ('menu_alquileres') }}">Alquileres</a></li>
           </ul>
           <ul class="secciones">
             <li class="dropdown">
@@ -123,34 +124,27 @@
     </script>
 </div>
 
-
-
-    <!--
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Total de Ingresos</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ingreso in ingresos %}
-            <tr>
-                <td>{{ ingreso.fecha }}</td>
-                <td>S/. {{ ingreso.total }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+<div class="container_penalizaciones">
+<h1>Penalizaciones</h1>
+{% if penalizaciones %}
+    <table class="table table-striped">
+        <tr>
+            <th>ID Alquiler</th>
+            <th>Monto</th>
+            <th>Motivo</th>
+        </tr>
+        {% for penalizacion in penalizaciones %}
+        <tr>
+            <td>{{ penalizacion.id_alquiler }}</td>
+            <td>{{ penalizacion.monto }}</td>
+            <td>{{ penalizacion.motivo }}</td>
+        </tr>
+        {% endfor %}
     </table>
-    
-    
-    <div class="container container_dashboard text-center my-4">
-        <p>Bienvenido/a, {{ session['nombres'] }}</p>
-        <a href="{{ url_for('menu_vehiculos') }}" class="btn btn-primary btn-lg">Vehículos</a>
-        <a href="{{ url_for('menu_clientes') }}" class="btn btn-primary btn-lg">Clientes</a>
-        <a href="{{ url_for('menu_promociones') }}" class="btn btn-primary btn-lg">Promociones</a>
-    </div>
-    -->
+{% else %}
+    <p class="text-muted">No hay penalizaciones registradas.</p>
+{% endif %}
 
+</div>
 </body>
 </html>
