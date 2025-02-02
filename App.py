@@ -731,7 +731,7 @@ def pagar():
 @app.route('/menu_alquileres', methods=['GET', 'POST'])
 def menu_alquileres():
     connection = get_bd()
-    cursor = connection.cursor()
+    cursor = connection.cursor(DictCursor)
 
     # **Procesar acción de eliminar alquiler**
     if request.method == 'POST':
@@ -742,32 +742,75 @@ def menu_alquileres():
             cursor.execute(sql, (alquiler_id,))
             connection.commit()
 
-    # **Obtener los alquileres con penalización**
-    estado = request.args.get('estado')  # "activo", "finalizado" o None
-    query = """
-        SELECT a.id, a.id_cliente, a.Id_vehiculo, a.fecha_inicio, a.fecha_fin, a.fecha_devolucion, 
-               COALESCE(p.monto, 0) AS penalizacion, a.estado
-        FROM alquileres a
-        LEFT JOIN penalizaciones p ON a.id = p.id_alquiler
-    """
-    
-    if estado:  # Si hay filtro, aplicarlo
-        query += " WHERE a.estado = %s"
-        cursor.execute(query, (estado,))
-    else:
-        cursor.execute(query)
+    # **Obtener filtros desde el request**
+    sucursal = request.args.get('sucursal', '')
+    tipo_cliente = request.args.get('tipo_cliente', '')
+    tipo_vehiculo = request.args.get('tipo_vehiculo', '')
+    estado = request.args.get('estado', '')
 
-    # Obtener lista de alquileres
+    # **Consulta para obtener alquileres con filtros**
+    query = """
+        SELECT a.id AS id_alquiler, 
+               c.nombres AS cliente, 
+               c.tipo AS tipo_cliente, 
+               v.placa, 
+               v.marca, 
+               v.modelo, 
+               v.tipo AS tipo_vehiculo, 
+               v.sucursal, 
+               a.fecha_inicio, 
+               a.fecha_fin, 
+               a.fecha_devolucion, 
+               COALESCE(p.monto, 0) AS penalizacion, 
+               a.estado
+        FROM alquileres a
+        JOIN vehiculo v ON a.Id_vehiculo = v.Id_vehiculo
+        JOIN clientes c ON a.id_cliente = c.id_cliente
+        LEFT JOIN penalizaciones p ON a.id = p.id_alquiler
+        WHERE 1=1
+    """
+
+    params = []
+
+    if sucursal:
+        query += " AND v.sucursal = %s"
+        params.append(sucursal)
+
+    if tipo_cliente:
+        query += " AND c.tipo = %s"
+        params.append(tipo_cliente)
+
+    if tipo_vehiculo:
+        query += " AND v.tipo = %s"
+        params.append(tipo_vehiculo)
+
+    if estado:
+        query += " AND a.estado = %s"
+        params.append(estado)
+
+    cursor.execute(query, tuple(params))
     alquileres = cursor.fetchall()
 
-    # Convertir los datos a diccionario
-    column_names = [column[0] for column in cursor.description]
-    alquileres_dict = [dict(zip(column_names, record)) for record in alquileres]
+    # **Obtener valores únicos para los filtros**
+    cursor.execute("SELECT DISTINCT sucursal FROM vehiculo WHERE sucursal IS NOT NULL")
+    sucursales = [row['sucursal'] for row in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT tipo FROM clientes WHERE tipo IS NOT NULL")
+    tipos_clientes = [row['tipo'] for row in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT tipo FROM vehiculo WHERE tipo IS NOT NULL")
+    tipos_vehiculos = [row['tipo'] for row in cursor.fetchall()]
 
     cursor.close()
     connection.close()
 
-    return render_template('menu_alquileres.html', alquileres=alquileres_dict)
+    return render_template(
+        'menu_alquileres.html',
+        alquileres=alquileres,
+        sucursales=sucursales,
+        tipos_clientes=tipos_clientes,
+        tipos_vehiculos=tipos_vehiculos
+    )
 
 
 @app.route('/marcar_devuelto/<int:id>', methods=['POST'])
