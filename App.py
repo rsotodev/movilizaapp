@@ -687,8 +687,8 @@ def pagar():
 
         # Insertar el ingreso en la base de datos
         query_ingreso = """
-            INSERT INTO ingresos (id_usuario, id_vehiculo, monto)
-            VALUES (%s, %s, %s)
+            INSERT INTO ingresos (id_usuario, id_vehiculo, monto, fecha)
+            VALUES (%s, %s, %s, NOW())
         """
         cursor.execute(query_ingreso, (id_usuario, id_vehiculo, monto))
 
@@ -726,52 +726,7 @@ def pagar():
         cursor.close()
         connection.close()
 
-    return redirect(url_for('index'))
-
-
-    connection = get_bd()
-    cursor = connection.cursor()
-
-    try:
-        # Obtener datos del alquiler
-        cursor.execute("SELECT fecha_fin FROM alquileres WHERE id = %s", (id,))
-        alquiler = cursor.fetchone()
-
-        if not alquiler:
-            return "Error: Alquiler no encontrado", 404
-
-        fecha_fin = alquiler[0]  # La fecha límite de devolución
-        fecha_actual = datetime.today().date()
-
-        # Verificar si hay retraso y calcular penalización
-        penalizacion = 0
-        if fecha_actual > fecha_fin:
-            dias_retraso = (fecha_actual - fecha_fin).days
-            penalizacion = dias_retraso * 10  # Suponiendo que la penalización es 10 por día
-
-        # Actualizar el estado del alquiler y registrar la penalización (si aplica)
-        cursor.execute("UPDATE alquileres SET estado = 'finalizado' WHERE id = %s", (id,))
-        
-        if penalizacion > 0:
-            cursor.execute(
-                "INSERT INTO penalizaciones (id_alquiler, monto, motivo) VALUES (%s, %s, 'Retraso en devolución')",
-                (id, penalizacion)
-            )
-
-        # Liberar el vehículo (volverlo a disponible)
-        cursor.execute("UPDATE vehiculo SET estado = 'Disponible' WHERE Id_vehiculo = (SELECT Id_vehiculo FROM alquileres WHERE id = %s)", (id,))
-
-        connection.commit()
-
-    except Exception as e:
-        connection.rollback()
-        return f"Error: {e}", 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-    return redirect(url_for('menu_alquileres'))
+    return redirect(url_for('index'))    
 
 @app.route('/menu_alquileres', methods=['GET', 'POST'])
 def menu_alquileres():
