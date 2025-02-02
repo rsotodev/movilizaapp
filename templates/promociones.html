@@ -52,7 +52,8 @@
                                       <div class="col-md-8">
                                       <div class="card-body">
                                           <h5 class="card-title">{{ promocion.marca }} {{ promocion.modelo }}</h5>
-                                          <p class="card-text">Precio por día: {{ promocion.precio_por_dia }}</p>
+                                          <del><p class="card-text">Precio normal: {{ promocion.precio_por_dia }}</p></del>
+                                          <p class="card-text">Precio promoción: {{ promocion.precio_prom }}</p>
                                           <p class="card-text">Transmision: {{ promocion.transmision }}</p>
                                           <p class="card-text">Número de asientos: {{ promocion.nro_asientos }}</p>
                                           <a href="#" class="btn btn-more">Ver más</a>

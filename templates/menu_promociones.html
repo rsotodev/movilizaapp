@@ -46,6 +46,7 @@
                     <th scope="col">Último mantenimiento</th>
                     <th scope="col">Kilometraje</th>
                     <th scope="col">Precio por día</th>
+                    <th scope="col">Precio Promocion</th>
                     <th scope="col">Estado</th>
                     <th scope="col">Sucursal</th>
                     <th scope="col">Acciones</th>
@@ -63,6 +64,7 @@
                     <td>{{d.fecha_ultimo_mantenimiento}}</td>
                     <td>{{d.kilometraje}}</td>
                     <td>{{d.precio_por_dia}}</td>
+                    <td>{{d.precio_prom}}</td>
                     <td>{{d.estado}}</td>
                     <td>{{d.sucursal}}</td>
                     <td>
@@ -83,30 +85,11 @@
                             </div>
                             <div class="modal-body">
                                 <form action="/editar_promocion/{{ d.id_promocion }}" method="post">
-                                    <label>Placa</label>
-                                    <input type="text" class="form-control mb-3" name="placa" value="{{ d.placa }}">
-                                    <label>Marca</label>
-                                    <input type="text" class="form-control mb-3" name="marca" value="{{ d.marca }}">
-                                    <label>Modelo</label>
-                                    <input type="text" class="form-control mb-3" name="modelo" value="{{ d.modelo }}">
-                                    <label>Año fabricación</label>
-                                    <input type="text" class="form-control mb-3" name="fabricacion" value="{{ d.fabricacion }}">
-                                    <label>Color</label>
-                                    <input type="text" class="form-control mb-3" name="color" value="{{ d.color }}">
-                                    <label>Último mantenimiento</label>
-                                    <input type="date" class="form-control mb-3" name="fecha_ultimo_mantenimiento" value="{{ d.fecha_ultimo_mantenimiento }}">
-                                    <label>Kilometraje</label>
-                                    <input type="text" class="form-control mb-3" name="kilometraje" value="{{ d.kilometraje }}">
-                                    <label>Precio por día</label>
+                                    <label>Precio normal</label>
                                     <input type="text" class="form-control mb-3" name="precio_por_dia" value="{{ d.precio_por_dia }}">
-                                    <label>Estado</label>
-                                    <select class="form-control mb-3" name="estado" value="{{ d.estado }}">
-                                        <option value="Disponible">Disponible</option>
-                                        <option value="Alquilado">Alquilado</option>
-                                    </select>
-                                    <label>Sucursal</label>
-                                    <input type="text" class="form-control mb-3" name="sucursal" value="{{ d.sucursal }}">
-                            </div>
+                                    <label>Precio Promoción</label>
+                                    <input type="text" class="form-control mb-3" name="precio_prom" value="{{ d.precio_prom }}"> 
+                                </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                                 <button type="submit" class="btn btn-primary">Guardar</button>

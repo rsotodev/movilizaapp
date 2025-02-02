@@ -262,7 +262,6 @@ def dashboard_trabajador():
         penalizaciones=penalizaciones_format
     )
 
-
 @app.route('/menu_vehiculos') 
 def menu_vehiculos():
     connection = get_bd()
@@ -326,86 +325,92 @@ def addVehiculo():
 @app.route('/editar/<int:id_vehiculo>', methods=['POST'])
 def editarVehiculo(id_vehiculo):
     # Obtener datos del formulario
-    placa = request.form['placa']
-    marca = request.form['marca']
-    modelo = request.form['modelo']
-    fabricacion = request.form['fabricacion']
-    color = request.form['color']
-    transmision = request.form['transmision']
-    nro_asientos = request.form['nro_asientos']
-    fecha_ultimo_mantenimiento = request.form['fecha_ultimo_mantenimiento']
-    kilometraje = request.form['kilometraje']
-    precio_por_dia = request.form['precio_por_dia']
-    estado = request.form['estado']
-    sucursal = request.form['sucursal']
-    promocion = request.form.get('promocion')
+    placa = request.form.get('placa', '')
+    marca = request.form.get('marca', '')
+    modelo = request.form.get('modelo', '')
+    fabricacion = request.form.get('fabricacion', '')
+    color = request.form.get('color', '')
+    transmision = request.form.get('transmision', '')
+    nro_asientos = request.form.get('nro_asientos', '')
+    fecha_ultimo_mantenimiento = request.form.get('fecha_ultimo_mantenimiento', '')
+    kilometraje = request.form.get('kilometraje', '')
+    precio_por_dia = request.form.get('precio_por_dia', '')
+    estado = request.form.get('estado', '')
+    sucursal = request.form.get('sucursal', '')
+    promocion = request.form.get('promocion')  # None si el checkbox no está marcado
 
-    if placa and marca and modelo and fabricacion and color and transmision and nro_asientos and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal:
-        # Conectar a la base de datos
-        connection = get_bd()
-        cursor = connection.cursor()
+    # Validar que los datos estén completos
+    if not all([placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal]):
+        flash('Faltan datos, no se pudo actualizar el vehículo', 'danger')
+        return redirect(url_for('menu_vehiculos'))
 
-         # Obtener la URL de la imagen actual del vehículo
+    # Conectar a la base de datos
+    connection = get_bd()
+    cursor = connection.cursor()
+
+    try:
+        # Obtener la URL de la imagen actual del vehículo
         cursor.execute("SELECT imagen FROM vehiculo WHERE id_vehiculo = %s", (id_vehiculo,))
-        imagen_url = cursor.fetchone()[0]
+        resultado = cursor.fetchone()
+        imagen_url = resultado[0] if resultado else ''  # Evitar error si no hay imagen
 
-        # Actualizar los datos del vehículo
-        sql = """
+        # Actualizar la tabla vehiculo
+        sql_update_vehiculo = """
             UPDATE vehiculo 
             SET placa = %s, marca = %s, modelo = %s, fabricacion = %s, color = %s, 
                 transmision = %s, nro_asientos = %s, fecha_ultimo_mantenimiento = %s, 
                 kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s
             WHERE id_vehiculo = %s
         """
-        data = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_vehiculo)
-        cursor.execute(sql, data)
-        connection.commit()
-        
+        data_update_vehiculo = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos,
+                                fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_vehiculo)
+        cursor.execute(sql_update_vehiculo, data_update_vehiculo)
+
         # Verificar si el vehículo ya está en promociones
         cursor.execute("SELECT COUNT(*) FROM promociones WHERE id_vehiculo = %s", (id_vehiculo,))
         en_promocion = cursor.fetchone()[0] > 0
 
-        # Si el checkbox de promoción está marcado y el vehículo no está en promociones, agregarlo
+        # Si el checkbox de promoción está marcado y el vehículo NO está en promociones, agregarlo
         if promocion and not en_promocion:
-            sql_promocion = """
+            sql_insert_promocion = """
                 INSERT INTO promociones (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            data_promocion = (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen_url)
-            cursor.execute(sql_promocion, data_promocion)
-            connection.commit()
-        # Si el checkbox de promoción no está marcado y el vehículo está en promociones, eliminarlo
+            data_promocion = (id_vehiculo, placa, marca, modelo, fabricacion, color, transmision, nro_asientos,
+                              fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen_url)
+            cursor.execute(sql_insert_promocion, data_promocion)
+
+        # Si el checkbox de promoción está marcado y el vehículo YA está en promociones, actualizarlo
+        elif promocion and en_promocion:
+            sql_update_promocion = """
+                UPDATE promociones 
+                SET placa = %s, marca = %s, modelo = %s, fabricacion = %s, color = %s, 
+                    transmision = %s, nro_asientos = %s, fecha_ultimo_mantenimiento = %s, 
+                    kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s, imagen = %s
+                WHERE id_vehiculo = %s
+            """
+            data_promocion_update = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos,
+                                     fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, imagen_url, id_vehiculo)
+            cursor.execute(sql_update_promocion, data_promocion_update)
+
+        # Si el checkbox de promoción NO está marcado y el vehículo está en promociones, eliminarlo
         elif not promocion and en_promocion:
             cursor.execute("DELETE FROM promociones WHERE id_vehiculo = %s", (id_vehiculo,))
-            connection.commit()
-            
-         # Manejar la lógica de devolución
-        fecha_devolucion = request.form.get('fecha_devolucion')
-        estado = request.form.get('estado')
-        if fecha_devolucion and estado:
-            query = """
-                INSERT INTO devoluciones (id_alquiler, fecha_devolucion, estado)
-                VALUES (%s, %s, %s)
-            """
-            cursor.execute(query, (id_vehiculo, fecha_devolucion, estado))
-            connection.commit()
-            # Actualizar el estado del alquiler a 'finalizado'
-            update_query = """
-                UPDATE alquileres
-                SET estado = 'Disponible'
-                WHERE id = %s
-            """
-            cursor.execute(update_query, (id_vehiculo,))
-            connection.commit()
 
+        # Guardar cambios en la base de datos
+        connection.commit()
+        flash('Vehículo actualizado correctamente', 'success')
+
+    except Exception as e:
+        connection.rollback()  # Revertir cambios en caso de error
+        flash(f'Error al actualizar: {str(e)}', 'danger')
+
+    finally:
         cursor.close()
         connection.close()
 
-        flash('Vehículo actualizado correctamente', 'success')
-    else:
-        flash('Faltan datos, no se pudo actualizar el vehículo', 'danger')
-
     return redirect(url_for('menu_vehiculos'))
+
 
 @app.route('/eliminar/<int:id_vehiculo>', methods=['POST'])
 def eliminarVehiculo(id_vehiculo):
@@ -549,15 +554,14 @@ def editarPromocion(id_promocion):
     modelo = request.form['modelo']
     fabricacion = request.form['fabricacion']
     color = request.form['color']
-    transmision = request.form['transmision']
-    nro_asientos = request.form['nro_asientos']
     fecha_ultimo_mantenimiento = request.form['fecha_ultimo_mantenimiento']
     kilometraje = request.form['kilometraje']
     precio_por_dia = request.form['precio_por_dia']
+    precio_prom = request.form['precio_prom']
     estado = request.form['estado']
     sucursal = request.form['sucursal']
 
-    if placa and marca and modelo and fabricacion and color and transmision and nro_asientos and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal:
+    if placa and marca and modelo and fabricacion and color and fecha_ultimo_mantenimiento and kilometraje and precio_por_dia and estado and sucursal and precio_prom:
         # Conectar a la base de datos
         connection = get_bd()
         cursor = connection.cursor()
@@ -566,11 +570,11 @@ def editarPromocion(id_promocion):
         sql = """
             UPDATE promociones 
             SET placa = %s, marca = %s, modelo = %s, fabricacion = %s, color = %s, 
-                transmision = %s, nro_asientos = %s, fecha_ultimo_mantenimiento = %s, 
-                kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s
+                fecha_ultimo_mantenimiento = %s, 
+                kilometraje = %s, precio_por_dia = %s, estado = %s, sucursal = %s, precio_prom = %s
             WHERE id_promocion = %s
         """
-        data = (placa, marca, modelo, fabricacion, color, transmision, nro_asientos, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, id_promocion)
+        data = (placa, marca, modelo, fabricacion, color, fecha_ultimo_mantenimiento, kilometraje, precio_por_dia, estado, sucursal, precio_prom, id_promocion)
         cursor.execute(sql, data)
         connection.commit()
 
@@ -667,7 +671,6 @@ def reserva(vehiculo_id):
     print(f"ENVIANDO A PLANTILLA: {costo_total}")  # <-- DEPURACIÓN
 
     return render_template('reserva.html', vehiculo=vehiculo, user=user_data, costo_total=costo_total)
-
 
 @app.route('/pagar', methods=['POST'])
 def pagar():
@@ -811,7 +814,6 @@ def menu_alquileres():
         tipos_clientes=tipos_clientes,
         tipos_vehiculos=tipos_vehiculos
     )
-
 
 @app.route('/marcar_devuelto/<int:id>', methods=['POST'])
 def marcar_devuelto(id):
