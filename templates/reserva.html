@@ -36,24 +36,43 @@
         <p>Marca: {{ vehiculo['marca'] }}</p>
         <p>Modelo: {{ vehiculo['modelo'] }}</p>
         <p>Color: {{ vehiculo['color'] }}</p>
-        <p>Transmision: {{ vehiculo['transmision'] }}</p>
-        <p>Precio por día: {{ vehiculo['precio_por_dia'] }}</p>  
-        {% if costo_total is not none %}
-          <p>Costo Total: {{ costo_total }}</p>
-        {% endif %}
-        <form action="{{ url_for('pagar') }}" method="POST">
+        <p>Transmisión: {{ vehiculo['transmision'] }}</p>
+        <p>Precio por día: S/. {{ vehiculo['precio_por_dia'] }}</p>  
+        
+        <!-- Formulario para calcular el costo -->
+        <form method="POST">
+          <input type="hidden" name="calcular_costo" value="1">
           <input type="hidden" name="id_vehiculo" value="{{ vehiculo['Id_vehiculo'] }}">
-          <input type="hidden" name="monto" value="{{ costo_total }}">
-      
+
           <label for="fecha_inicio">Fecha de Inicio:</label>
           <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-      
+
           <label for="fecha_fin">Fecha de Fin:</label>
           <input type="date" id="fecha_fin" name="fecha_fin" required>
-      
-          <button type="submit">Pagar</button>
-      </form>
-      
+
+          <button type="submit" class="btn btn-primary">Calcular Costo</button>
+        </form>
+
+        <!-- Mostrar el costo total si ya se calculó -->
+        {% if costo_total is not none %}
+          <div class="alert alert-info">
+              <strong>Costo Total:</strong> S/. {{ costo_total }}
+          </div>
+        {% endif %}
+
+        
+        <!-- Si el usuario ya calculó el costo, mostrar botón de pago -->
+        {% if costo_total is not none and costo_total > 0 %}
+            <form action="{{ url_for('pagar') }}" method="POST">
+                <input type="hidden" name="id_vehiculo" value="{{ vehiculo['Id_vehiculo'] }}">
+                <input type="hidden" name="monto" value="{{ costo_total }}">
+                <input type="hidden" name="fecha_inicio" value="{{ request.form.get('fecha_inicio') }}">
+                <input type="hidden" name="fecha_fin" value="{{ request.form.get('fecha_fin') }}">
+                
+                <button type="submit" class="btn btn-success">Pagar</button>
+            </form>
+        {% endif %}
+        
         
 
     </div>

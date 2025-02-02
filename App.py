@@ -11,9 +11,9 @@ app.secret_key = 'tu_clave_secreta'
 def get_bd():
         connection=pymysql.connect(
             host='sql10.freesqldatabase.com', 
-            user='sql10760237',          
-            password='qe1PYD5SXL', 
-            database='sql10760237',
+            user='sql10760754',          
+            password='dGEnawEkQF', 
+            database='sql10760754',
             port=3306           
         )
         return connection
@@ -608,21 +608,30 @@ def logout():
     # Redirigir al usuario a la página de inicio de sesión
     return redirect(url_for('index'))
 
-@app.route('/reserva/<int:vehiculo_id>', methods =['GET','POST'])
+@app.route('/reserva/<int:vehiculo_id>', methods=['GET', 'POST'])
 def reserva(vehiculo_id):
-    connection=get_bd()
-    cursor=connection.cursor(DictCursor)
+    connection = get_bd()
+    cursor = connection.cursor(DictCursor)
+
+    # Obtener datos del vehículo
     cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (vehiculo_id,))
-    vehiculo=cursor.fetchone()
-    cursor.close()
-    connection.close()
-    
-    costo_total=None
-    if request.method == 'POST':
+    vehiculo = cursor.fetchone()
+
+    if not vehiculo:
+        cursor.close()
+        connection.close()
+        return "Auto no encontrado", 404
+
+    costo_total = None  # Inicializar el costo total
+
+    if request.method == 'POST' and 'calcular_costo' in request.form:
+        try:
             # Obtener las fechas del formulario
             fecha_inicio = request.form['fecha_inicio']
             fecha_fin = request.form['fecha_fin']
             precio_por_dia = float(vehiculo['precio_por_dia'])
+
+            print(f"FECHA INICIO: {fecha_inicio}, FECHA FIN: {fecha_fin}, PRECIO POR DÍA: {precio_por_dia}")  # <-- DEPURACIÓN
 
             # Calcular la diferencia de días
             from datetime import datetime
@@ -632,81 +641,33 @@ def reserva(vehiculo_id):
 
             if diff_days > 0:
                 costo_total = diff_days * precio_por_dia
+                print(f"COSTO TOTAL CALCULADO: {costo_total}")  # <-- DEPURACIÓN
             else:
-                costo_total = "Fechas inválidas, verifica tu selección."
-    
-    if 'user_id' in session and vehiculo:  
-        user_data = {
-                'id': session.get('user_id'),
-                'nombre_compl': session.get('nombre_compl'),
-                'apellidop':session.get('apellidop'),
-                'apellidom':session.get('apellidom'),
-                'tipo_doc':session.get('tipo_doc'),
-                'num_doc':session.get('num_doc'),
-                'direccion':session.get('direccion')
-            }
-        
-        return render_template('reserva.html', vehiculo=vehiculo, user=user_data, costo_total=costo_total)
-    else:
-        return "Auto no encontrado", 404
+                flash("Las fechas ingresadas no son válidas.", "danger")
+                return redirect(url_for('reserva', vehiculo_id=vehiculo_id))
 
+        except Exception as e:
+            flash(f"Error al calcular el costo: {e}", "danger")
+            print(f"ERROR: {e}")  # <-- DEPURACIÓN
 
-    if 'user_id' not in session:
-        return "Usuario no autenticado", 403
+    # Obtener datos del usuario
+    user_data = {
+        'id': session.get('user_id', ''),
+        'nombre_compl': session.get('nombre_compl', 'Usuario no identificado'),
+        'apellidop': session.get('apellidop', ''),
+        'apellidom': session.get('apellidom', ''),
+        'tipo_doc': session.get('tipo_doc', ''),
+        'num_doc': session.get('num_doc', ''),
+        'direccion': session.get('direccion', '')
+    }
 
-    connection = get_bd()
-    cursor = connection.cursor()
+    cursor.close()
+    connection.close()
 
-    try:
-        # Obtener datos del formulario y de la sesión
-        id_usuario = session['user_id']
-        id_vehiculo = request.form['id_vehiculo']
-        monto = request.form['monto']
-        fecha_inicio = request.form['fecha_inicio']
-        fecha_fin = request.form['fecha_fin']
+    print(f"ENVIANDO A PLANTILLA: {costo_total}")  # <-- DEPURACIÓN
 
-        # Insertar el ingreso en la base de datos
-        query_ingreso = """
-            INSERT INTO ingresos (id_usuario, id_vehiculo, monto)
-            VALUES (%s, %s, %s)
-        """
-        cursor.execute(query_ingreso, (id_usuario, id_vehiculo, monto))
+    return render_template('reserva.html', vehiculo=vehiculo, user=user_data, costo_total=costo_total)
 
-        # Verificar si el vehículo existe antes del UPDATE
-        cursor.execute("SELECT * FROM vehiculo WHERE Id_vehiculo = %s", (id_vehiculo,))
-        vehiculo = cursor.fetchone()
-        
-        if vehiculo:
-            # Insertar el alquiler en la base de datos
-            query_alquiler = """
-                INSERT INTO alquileres (cliente_id, vehiculo_id, fecha_inicio, fecha_fin, total)
-                VALUES (%s, %s, %s, %s, %s)
-            """
-            cursor.execute(query_alquiler, (id_usuario, id_vehiculo, fecha_inicio, fecha_fin, monto))
-
-            # Actualizar el estado del vehículo a "Alquilado"
-            query_update = """
-                UPDATE vehiculo
-                SET estado = 'Alquilado'
-                WHERE Id_vehiculo = %s
-            """
-            cursor.execute(query_update, (id_vehiculo,))
-            
-            connection.commit()
-        else:
-            connection.rollback()
-            return "ERROR: Vehículo no encontrado, no se pudo actualizar el estado.", 400
-
-    except Exception as e:
-        connection.rollback()
-        print("Error en la base de datos:", e)
-        return f"Error: {e}", 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-    return redirect(url_for('index'))
 
 @app.route('/pagar', methods=['POST'])
 def pagar():
@@ -853,9 +814,6 @@ def menu_alquileres():
 
     return render_template('menu_alquileres.html', alquileres=alquileres_dict)
 
-
-from flask import flash, redirect, url_for
-from datetime import datetime
 
 @app.route('/marcar_devuelto/<int:id>', methods=['POST'])
 def marcar_devuelto(id):
