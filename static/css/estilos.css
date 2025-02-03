@@ -157,39 +157,6 @@ header div ul li a{
     width: 90vw
 }
 
-.footer{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    padding: 2%;
-    background-color: rgb(218, 66, 11);
-    color: white;
-}
-
-.nosotros{
-    width: 100%;
-}
-
-.contacto{
-    padding: 5%;
-    margin-top: -3%;
-    width: 100%;
-}
-
-.redes{
-    margin-top: -4.5%;
-
-    width: 100%;
-}
-
-.contacto_info{
-    display: flex;
-}
-
-.redes_info{
-    display: flex;
-}
 .login{
     background-image: url(../images/img_viajeros3.jpg);
     background-color: rgba(255, 255, 255, 0.5);
@@ -316,4 +283,51 @@ header div ul li a{
 .btn-more{
     background-color: rgb(0, 9, 69);
     color: white;
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px 40px;
+    background-color: #d84315; /* Fondo naranja */
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.footer h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.footer p {
+    max-width: 400px;
+    line-height: 1.6;
+}
+
+.footer ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.footer li i {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: #ffd54f; /* Amarillo claro */
+    text-decoration: underline;
 }
