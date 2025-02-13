@@ -30,75 +30,75 @@
         </div>
     </header>
     <main class="registro">
-            <div class="container_record">
-              <form action="/MovilizaRegistro" method="POST">
-                  <div class="row mb-3">
-                    <h2>Registro</h2>
-                    <p>Por favor, ingrese sus datos para registrarse en la plataforma.</p>
-                      <div class="col">
-                          <label>Nombres</label>
-                          <input type="text" class="form-control mb-3" name="nombres">
-                      </div>
-                      <div class="col">
-                          <label>Apellido Paterno</label>
-                          <input type="text" class="form-control mb-3" name="apellido_paterno">
-                      </div>
-                      <div class="col">
-                          <label>Apellido Materno</label>
-                          <input type="text" class="form-control mb-3" name="apellido_materno">
-                      </div>
-                  </div>
-
-                  <div class="row mb-3">
-                      <div class="col">
-                          <label>Tipo de Documento</label>
-                          <select class="form-select" id="tipo_documento" name="tipo_documento">
-                            <option value="DNI">DNI</option>  
-                            <option value="Pasaporte">Pasaporte</option>
-                            <option value="CExtranjeria">C. Extranjeria</option>
-                          </select>
-                      </div>
-                      <div class="col">
-                          <label>Número de Documento</label>
-                          <input type="text" class="form-control mb-3" name="numero_documento">
-                      </div>
-                      <div class="col">
-                          <label>Fecha de Nacimiento</label>
-                          <input type="date" class="form-control mb-3" name="fecha_nacimiento">
-                      </div>
-                  </div>
-
-                  <div class="row mb-3">
-                      <div class="col">
-                          <label>Celular</label>
-                          <input type="text" class="form-control mb-3" name="celular">
-                      </div>
-                      <div class="col">
-                          <label>Correo Electrónico</label>
-                          <input type="email" class="form-control mb-3" name="usuario">
-                      </div>
-                      <div class="col">
-                          <label>Contraseña</label>
-                          <input type="password" class="form-control mb-3" name="contrasena">
-                      </div>
-                  </div>
-
-                  <div class="row">
-                    <div class="col">
-                        <label>Dirección</label>
-                        <input type="text" class="form-control mb-3" name="direccion">
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
-                      <div class="col">
-                          <button class="btn btn-registro mb-3 mt-4" type="submit">Registrar</button>
-                      </div>
-                  </div>
-
-              </form>
-
-          </div>
+      <div class="container_record">
+        <form action="/MovilizaRegistro" method="POST">
+            <h2>Registro</h2>
+            <p>Por favor, ingrese sus datos para registrarse en la plataforma.</p>
+            <!-- Primera fila -->
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="nombres">Nombres</label>
+                    <input type="text" class="form-control" id="nombres" name="nombres" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="apellido_paterno">Apellido Paterno</label>
+                    <input type="text" class="form-control" id="apellido_paterno" name="apellido_paterno" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="apellido_materno">Apellido Materno</label>
+                    <input type="text" class="form-control" id="apellido_materno" name="apellido_materno" required>
+                </div>
+            </div>
+            <!-- Segunda fila -->
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="tipo_documento">Tipo de Documento</label>
+                    <select class="form-select" id="tipo_documento" name="tipo_documento">
+                        <option value="DNI">DNI</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                        <option value="CExtranjeria">C. Extranjería</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="numero_documento">Número de Documento</label>
+                    <input type="text" class="form-control" id="numero_documento" name="numero_documento" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                    <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required>
+                </div>
+            </div>
+            <!-- Tercera fila -->
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="celular">Celular</label>
+                    <input type="text" class="form-control" id="celular" name="celular" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="usuario">Correo Electrónico</label>
+                    <input type="email" class="form-control" id="usuario" name="usuario" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="contrasena">Contraseña</label>
+                    <input type="password" class="form-control" id="contrasena" name="contrasena" required>
+                </div>
+            </div>
+            <!-- Cuarta fila -->
+            <div class="row">
+                <div class="col">
+                    <label for="direccion">Dirección</label>
+                    <input type="text" class="form-control" id="direccion" name="direccion">
+                </div>
+            </div>
+            <!-- Botón -->
+            <div class="row">
+                <div class="col text-center">
+                    <button class="btn btn-registro mt-4" type="submit">Registrar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
       </div>
       
   </div>    

@@ -11,17 +11,19 @@ app.secret_key = 'tu_clave_secreta'
 def get_bd():
         connection=pymysql.connect(
             host='sql10.freesqldatabase.com', 
-            user='sql10760754',          
-            password='dGEnawEkQF', 
-            database='sql10760754',
+            user='sql10761823',          
+            password='6nLZP5r9Qy', 
+            database='sql10761823',
             port=3306           
         )
         return connection
 
-@app.route('/')
-def index():
+@app.route('/', methods=['GET'])
+def index():    
     connection = get_bd()
     cursor = connection.cursor()
+    
+    # Consultar promociones
     cursor.execute("SELECT * FROM promociones")
     promociones = cursor.fetchall()
 
@@ -29,11 +31,16 @@ def index():
     column_names = [column[0] for column in cursor.description]
     promociones_dict = [dict(zip(column_names, record)) for record in promociones]
 
+    # Consultar sucursales de los vehículos
+    cursor.execute("SELECT DISTINCT sucursal FROM vehiculo WHERE sucursal IS NOT NULL")
+    sucursales = cursor.fetchall()
+    sucursales_list = [sucursal[0] for sucursal in sucursales]
+
     cursor.close()
     connection.close()
 
-    # Pasar las promociones al template
-    return render_template('index.html', promociones=promociones_dict, enumerate=enumerate)
+    # Pasar las promociones y sucursales al template
+    return render_template('index.html', promociones=promociones_dict, sucursales=sucursales_list, enumerate=enumerate)
 
 @app.route("/MovilizaVehiculos", methods=['GET'])
 def cli_vehiculos():
@@ -41,7 +48,17 @@ def cli_vehiculos():
     marca = request.args.get('marca', 'todos')
     color = request.args.get('color', 'todos')
     transmision = request.args.get('transmision', 'todos')
-    nro_asientos = request.args.get('nro_asientos', 'todos')  
+    nro_asientos = request.args.get('nro_asientos', 'todos') 
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+    recogida = request.args.get('recogida')
+    sucursal_filtro = request.args.get('sucursal', recogida if recogida else 'todos')
+
+
+    # Aquí puedes guardar estos valores en la sesión para persistirlos
+    session['fecha_inicio'] = fecha_inicio
+    session['fecha_fin'] = fecha_fin
+    session['recogida'] = sucursal_filtro
  
     # Conectar a la base de datos
     connection = get_bd()
@@ -63,6 +80,9 @@ def cli_vehiculos():
     if nro_asientos and nro_asientos != "todos":
         consulta += " AND nro_asientos = %s"
         parametros.append(nro_asientos)
+    if sucursal_filtro and sucursal_filtro != "todos":
+        consulta += " AND sucursal = %s"
+        parametros.append(sucursal_filtro)
 
     # Ejecutar consulta
     cur.execute(consulta, parametros)
@@ -71,26 +91,32 @@ def cli_vehiculos():
     # Convertir los datos a diccionario
     column_names = [column[0] for column in cur.description]
     vehiculo_dict = [dict(zip(column_names, record)) for record in vehiculo]
+    
+    def obtener_lista_unica(consulta_sql):
+        cur.execute(consulta_sql)
+        return [row for row in cur.fetchall()]
 
-    # Consultar en la DB
-    cur.execute("SELECT DISTINCT marca FROM vehiculo")
-    marcas = cur.fetchall()
-
-    cur.execute("SELECT DISTINCT color FROM vehiculo")
-    colores = cur.fetchall()
-
-    cur.execute("SELECT DISTINCT transmision FROM vehiculo")
-    transmisiones = cur.fetchall()
-
-    cur.execute("SELECT DISTINCT nro_asientos FROM vehiculo")
-    nro_asientoss = cur.fetchall()
+    marcas = obtener_lista_unica("SELECT DISTINCT marca FROM vehiculo")
+    colores = obtener_lista_unica("SELECT DISTINCT color FROM vehiculo")
+    transmisiones = obtener_lista_unica("SELECT DISTINCT transmision FROM vehiculo")
+    nro_asientoss = obtener_lista_unica("SELECT DISTINCT nro_asientos FROM vehiculo")
+    sucursales = obtener_lista_unica("SELECT DISTINCT sucursal FROM vehiculo")
 
     cur.close()
     connection.close()
 
-    # Renderizar plantilla
-    return render_template("vehiculos.html", vehiculo=vehiculo_dict, marcas=marcas, colores=colores,transmisiones=transmisiones,nro_asientoss=nro_asientoss)
-
+    # Renderizar plantilla con datos filtrados
+    return render_template("vehiculos.html", 
+                           vehiculo=vehiculo_dict, 
+                           marcas=marcas, 
+                           colores=colores, 
+                           transmisiones=transmisiones, 
+                           nro_asientoss=nro_asientoss, 
+                           sucursales=sucursales,  # Corregido
+                           fecha_inicio=fecha_inicio, 
+                           fecha_fin=fecha_fin, 
+                           sucursal=sucursal_filtro)
+    
 @app.route('/MovilizaPromociones', methods=['GET'])
 def cli_promociones():
     connection = get_bd()
@@ -410,7 +436,6 @@ def editarVehiculo(id_vehiculo):
         connection.close()
 
     return redirect(url_for('menu_vehiculos'))
-
 
 @app.route('/eliminar/<int:id_vehiculo>', methods=['POST'])
 def eliminarVehiculo(id_vehiculo):
