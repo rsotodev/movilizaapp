@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moviliza | Alquileres</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo_moviliza1.png') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_dashboard.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('dashboard') }}">
+            <img src="{{ url_for('static', filename='images/logo_moviliza1.png') }}" alt="logo">
+        </a>
+        <div>
+            <ul class="secciones">
+                <li><a href="{{ url_for('menu_vehiculos') }}">Vehículos</a></li>
+                <li><a href="{{ url_for('menu_clientes') }}">Clientes</a></li>
+                <li><a href="{{ url_for('menu_promociones') }}">Promociones</a></li>
+                <li><a href="{{ url_for('menu_alquileres') }}">Alquileres</a></li>
+            </ul>
+            <ul class="secciones">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">{{ session['nombres'] }}</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Cuenta</a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                    </ul>
+                </li>
+                <li>|</li>
+                <li>{{ session['cargo'] }}</li>
+            </ul>
+        </div>
+    </header>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Gestión de Alquileres</h1>
+
+        <!-- Filtros -->
+        <form method="GET" action="{{ url_for('menu_alquileres') }}" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="sucursal" class="form-label">Sucursal:</label>
+                <select name="sucursal" id="sucursal" class="form-select">
+                    <option value="">Todas</option>
+                    {% for sucursal in sucursales %}
+                    <option value="{{ sucursal }}" {% if request.args.get('sucursal') == sucursal %}selected{% endif %}>{{ sucursal }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="tipo_cliente" class="form-label">Tipo de Cliente:</label>
+                <select name="tipo_cliente" id="tipo_cliente" class="form-select">
+                    <option value="">Todos</option>
+                    {% for tipo in tipos_clientes %}
+                    <option value="{{ tipo }}" {% if request.args.get('tipo_cliente') == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="tipo_vehiculo" class="form-label">Tipo de Vehículo:</label>
+                <select name="tipo_vehiculo" id="tipo_vehiculo" class="form-select">
+                    <option value="">Todos</option>
+                    {% for tipo in tipos_vehiculos %}
+                    <option value="{{ tipo }}" {% if request.args.get('tipo_vehiculo') == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="estado" class="form-label">Estado:</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="activo" {% if request.args.get('estado') == 'activo' %}selected{% endif %}>Activo</option>
+                    <option value="finalizado" {% if request.args.get('estado') == 'finalizado' %}selected{% endif %}>Finalizado</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+        </form>
+
+        <!-- Tabla de Alquileres -->
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Tipo Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Tipo Vehículo</th>
+                    <th>Sucursal</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Fecha Devolución</th>
+                    <th>Penalización</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alquiler in alquileres %}
+                <tr>
+                    <td>{{ alquiler.id_alquiler }}</td>
+                    <td>{{ alquiler.cliente }}</td>
+                    <td>{{ alquiler.tipo_cliente }}</td>
+                    <td>{{ alquiler.placa }}</td>
+                    <td>{{ alquiler.tipo_vehiculo }}</td>
+                    <td>{{ alquiler.sucursal }}</td>
+                    <td>{{ alquiler.fecha_inicio }}</td>
+                    <td>{{ alquiler.fecha_fin }}</td>
+                    <td>{{ alquiler.fecha_devolucion or 'N/A' }}</td>
+                    <td>S/. {{ alquiler.penalizacion }}</td>
+                    <td>{{ alquiler.estado }}</td>
+                    <td class="d-flex flex-row">
+                        <form action="{{ url_for('marcar_devuelto', id=alquiler.id_alquiler) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Devolver</button>
+                        </form>
+                        <form action="{{ url_for('menu_alquileres') }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="action" value="eliminar">
+                            <input type="hidden" name="alquiler_id" value="{{ alquiler.id_alquiler }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

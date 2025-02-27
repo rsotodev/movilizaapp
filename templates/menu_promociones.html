@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Promociones</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo_moviliza1.png') }}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos_dashboard.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('dashboard_trabajador') }}"><img src={{ url_for ("static", filename='images/logo_moviliza1.png') }} alt="logo"></a>
+        <div>
+            <ul class="secciones">
+                <li><a href="{{ url_for ('menu_vehiculos') }}">Vehiculos</a></li>
+                <li><a href="{{ url_for ('menu_clientes') }}">Clientes</a></li>
+                <li><a href="{{ url_for ('menu_promociones') }}">Promociones</a></li>
+                <li><a href="{{ url_for ('menu_alquileres') }}">Alquileres</a></li>
+            </ul>
+            <ul class="secciones">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle">{{ session['nombres'] }}</a>
+                <ul class="dropdown-menu">
+                  <li><a href="">Cuenta</a></li>
+                  <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+              </li>
+              <li>|</li>
+              <li>{{ session['cargo'] }}</li>
+            </ul>
+          </div>
+    </header>
+    <main>
+        <div class="card shadow">
+            <!--Tabla-->
+            <table class="table table.bordered">
+                <thead>
+                    <th scope="col">ID</th>
+                    <th scope="col">Placa</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Modelo</th>
+                    <th scope="col">Año fabricación</th>
+                    <th scope="col">Color</th>
+                    <th scope="col">Último mantenimiento</th>
+                    <th scope="col">Kilometraje</th>
+                    <th scope="col">Precio por día</th>
+                    <th scope="col">Precio Promocion</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Sucursal</th>
+                    <th scope="col">Acciones</th>
+                </thead>
+            
+            <tbody>
+                {% for d in promociones %}
+                <tr>
+                    <td>{{d.id_promocion}}</td>
+                    <td>{{d.placa}}</td>
+                    <td>{{d.marca}}</td>
+                    <td>{{d.modelo}}</td>
+                    <td>{{d.fabricacion}}</td>
+                    <td>{{d.color}}</td>
+                    <td>{{d.fecha_ultimo_mantenimiento}}</td>
+                    <td>{{d.kilometraje}}</td>
+                    <td>{{d.precio_por_dia}}</td>
+                    <td>{{d.precio_prom}}</td>
+                    <td>{{d.estado}}</td>
+                    <td>{{d.sucursal}}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" id="btn-edit{{ d.id_promocion }}" data-bs-toggle="modal" data-bs-target="#modal{{ d.id_promocion }}">Editar</button>
+                        <form action="{{ url_for('eliminarPromocion', id_promocion=d.id_promocion) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <!-- Ventana modal -->
+                <div class="modal fade" id="modal{{ d.id_promocion }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">{{ d.marca }} {{ d.modelo }}</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="/editar_promocion/{{ d.id_promocion }}" method="post">
+                                    <label>Precio normal</label>
+                                    <input type="text" class="form-control mb-3" name="precio_por_dia" value="{{ d.precio_por_dia }}">
+                                    <label>Precio Promoción</label>
+                                    <input type="text" class="form-control mb-3" name="precio_prom" value="{{ d.precio_prom }}"> 
+                                </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+    </main>
+    <footer>
+    </footer>
+</body>
+</html>

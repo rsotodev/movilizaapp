@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moviliza | Vehiculos</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo_moviliza1.png') }}" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}"><img src="{{ url_for ("static", filename='images/logo_moviliza1.png') }}" alt="logo"></a>
+        <div>
+          <ul class="secciones">
+            <li><a href="{{ url_for ('cli_promociones') }}">Promociones</a></li>
+            <li><a href="">Reservas</a></li>
+            <li><a href="{{ url_for ('cli_vehiculos') }}">Vehiculos</a></li>
+        </ul>
+        <ul class="secciones">
+          {% if 'user_id' in session %}
+            <li><a href="">{{ session['nombres'] }}</a></li>
+            <li>|</li>
+            <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+          {% else %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+          {% endif %}
+        </ul>
+        </div>
+    </header>
+    <main>
+        <section>
+          <section class="seccion_filtrar">
+            <div class="container text-center p-2">
+                <h1 class="mb-3">VEHÍCULOS</h1>
+                <p class="text-muted">Por favor, seleccione los filtros que desea aplicar:</p>
+                <form method="GET" action="/MovilizaVehiculos" class="form-filtros p-2 shadow rounded container-fluid">
+                    <div class="row row-cols-2 row-cols-md-2 row-cols-lg-6 g-2">
+                        
+                        <!-- Filtro por marca -->
+                        <div class="col-md-6">
+                            <label for="marca" class="form-label">Marca:</label>
+                            <select class="form-select form-select-sm" id="marca" name="marca">
+                                <option value="todos" {% if marca == 'todos' %}selected{% endif %}>Todas las opciones</option>
+                                {% for marca_item in marcas %}
+                                    <option value="{{ marca_item }}" {% if marca_item == marca %}selected{% endif %}>{{ marca_item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Filtro por color -->
+                        <div class="col-md-6">
+                            <label for="color" class="form-label">Color:</label>
+                            <select class="form-select form-select-sm" id="color" name="color">
+                                <option value="todos" {% if color == 'todos' %}selected{% endif %}>Todas las opciones</option>
+                                {% for color_item in colores %}
+                                    <option value="{{ color_item }}" {% if color_item == color %}selected{% endif %}>{{ color_item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Filtro por transmisión -->
+                        <div class="col-md-6">
+                            <label for="transmision" class="form-label">Transmisión:</label>
+                            <select class="form-select form-select-sm" id="transmision" name="transmision">
+                                <option value="todos" {% if transmision == 'todos' %}selected{% endif %}>Todas las opciones</option>
+                                {% for transmision_item in transmisiones %}
+                                    <option value="{{ transmision_item }}" {% if transmision_item == transmision %}selected{% endif %}>{{ transmision_item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Filtro por número de asientos -->
+                        <div class="col-md-6">
+                            <label for="nro_asientos" class="form-label">Número de asientos:</label>
+                            <select class="form-select form-select-sm" id="nro_asientos" name="nro_asientos">
+                                <option value="todos" {% if nro_asientos == 'todos' %}selected{% endif %}>Todas las opciones</option>
+                                {% for asientos in nro_asientoss %}
+                                    <option value="{{ asientos }}" {% if asientos == nro_asientos %}selected{% endif %}>{{ asientos }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Filtro por agencia -->
+                        <div class="col-md-6">
+                            <label for="sucursal" class="form-label">Sucursal:</label>
+                            <select class="form-select form-select-sm" id="sucursal" name="sucursal">
+                                <option value="todos" {% if sucursal == 'todos' %}selected{% endif %}>Todas las opciones</option>
+                                {% for sucursal_item in sucursales %}
+                                    <option value="{{ sucursal_item }}" {% if sucursal_item == sucursal %}selected{% endif %}>{{ sucursal_item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Botón para buscar -->
+                        <div class="d-flex align-items-center">
+                            <button type="submit" class="btn btn-more btn-lg w-100 h-60">Buscar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        
+            <section>
+                <!-- busca v en la tabla vehiculo en mi DB-->
+                
+
+                    <div>
+                      <div class="container mt-5">
+                        <div class="row d-flex g-5 justify-content-center">
+                          {% if vehiculo%}
+                            {% for v in vehiculo %}
+                            <div class="col-md-3 d-flex">
+                            <div class="card">
+                              <div class="row d-flex align-items-center">
+                                <div class="col-md-12 col-sm-4 img-container">
+                                  <img src="{{ url_for('static', filename=v['imagen']) }}" class="img-fluid" alt="Imagen de {{ v['modelo'] }}">
+                                </div>
+                                <div class="col-md-12">
+                                  <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                                    <h5 class="card-title">{{ v['marca'] }} {{ v['modelo'] }}</h5>
+                                    <p class="card-text">Precio por día: {{ v['precio_por_dia'] }}</p>
+                                    <p class="card-text">Transmision: {{ v['transmision'] }}</p>
+                                    <p class="card-text">Número de asientos: {{ v['nro_asientos'] }}</p>
+                                    <p class="card-text">Color: {{ v['color'] }}</p>
+                                    <div class="mt-auto">
+                                      <a href="#" class="btn btn-more me-2">Ver más</a>
+                                      <a href="{{ url_for('reserva', vehiculo_id=v['Id_vehiculo']) }}" class="btn btn-more">RESERVAR</a>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            {% else %}
+                <tr>
+                    <td colspan="4">No se encontraron vehículos con las características señaladas.</td>
+                </tr>
+            {% endif %}
+
+            </section>
+            <section>
+            </section>
+        </section>
+    </main>
+    <footer class="footer">
+      <div class="nosotros">
+          <h3>SOBRE NOSOTROS</h3>
+          <p>
+              Nos apasiona ofrecer soluciones confiables para tus necesidades de transporte. Con un compromiso en calidad, 
+              innovación y atención al cliente, trabajamos cada día para brindarte los mejores vehículos y servicios. 
+              Tu confianza nos impulsa a seguir creciendo.
+          </p>
+      </div>
+      <div class="contacto">
+          <h3>CONTACTENOS</h3>
+          <ul>
+              <li>
+                  <i class="fab fa-whatsapp"></i>
+                  <a href="https://wa.me/99999999" target="_blank">WhatsApp: 99999999</a>
+              </li>
+              <li>
+                  <i class="fas fa-phone"></i>
+                  <a href="tel:011234567">Teléfono: (01)1234567</a>
+              </li>
+              <li>
+                  <i class="fas fa-envelope"></i>
+                  <a href="mailto:moviliza@gmail.com">Correo: moviliza@gmail.com</a>
+              </li>
+              <li>
+                  <i class="fas fa-map-marker-alt"></i>
+                  <a href="https://goo.gl/maps/example" target="_blank">Ubicación: Miraflores 1085 - Lima</a>
+              </li>
+          </ul>
+      </div>
+      <div class="redes">
+          <h3>REDES</h3>
+          <ul>
+              <li>
+                  <i class="fab fa-facebook"></i>
+                  <a href="https://www.facebook.com/moviliza" target="_blank">Facebook</a>
+              </li>
+              <li>
+                  <i class="fab fa-instagram"></i>
+                  <a href="https://www.instagram.com/moviliza" target="_blank">Instagram</a>
+              </li>
+              <li>
+                  <i class="fab fa-tiktok"></i>
+                  <a href="https://www.tiktok.com/@moviliza" target="_blank">TikTok</a>
+              </li>
+          </ul>
+      </div>
+  </footer>
+</body>
+</html>

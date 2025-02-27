@@ -1,0 +1,552 @@
+/* 🔹 General */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+}
+
+.index p{
+    color:white;
+}
+/* 🔹 Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(0, 9, 69);
+    padding: 15px 20px;
+    flex-wrap: wrap;
+}
+
+header img {
+    width: 100px;
+}
+
+header div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+header ul {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    list-style: none;
+}
+
+.secciones li a {
+    color: white;
+    text-decoration: none;
+}
+
+/* 🔹 Sección de Reservas */
+.seccion_1 {
+    padding: 10%;
+    background-image: url(../images/img_viajeros2.png);
+    background-position: center;
+    background-size: cover;
+    height: 90vh;
+}
+
+.menu_reserva {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+    padding: 3%;
+    background-color: rgba(0, 9, 69, 0.8);
+    color: white;
+}
+
+.menu_reserva div {
+    margin: auto;
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+
+.seccion_promociones {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+}
+
+.carousel-item img {
+    padding: 5%;
+    object-fit: cover;
+    height: 60vh;
+}
+
+.carousel-item h5 {
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.carousel-item p {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.carousel-item .btn {
+    font-size: 1.2rem;
+    background-color: #001556;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    transition: all 0.3s ease-in-out;
+}
+
+.carousel-item .btn:hover {
+    background-color: #003399;
+    color: #fff;
+}
+
+/* 🔹 Marcas */
+.marcas {
+    padding: 2%;
+    background-color: rgb(0, 9, 69);
+    color: white;
+}
+
+.marcas_logos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 5%;
+}
+
+.marcas h2,
+.marcas p{
+    color: white;
+}
+
+.seccion_2 div h3,
+.seccion_2 div p{
+    color: white;
+}
+
+.logos {
+    transform: scale(1);
+    transition: all 1s;
+}
+
+.logos:hover {
+    transform: scale(1.2);
+}
+
+/* 🔹 Pasos */
+.seccion_2 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 5%;
+    background-color: rgb(218, 66, 11);
+    color: white;
+}
+
+.seccion_3{
+    padding: 3%;
+}
+
+.pasos {
+    flex: 1;
+    background-color: rgb(0, 9, 69);
+    color: white;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 10px;
+}
+
+.accordion-item{
+    background-color: rgb(0, 9, 69);
+}
+
+.accordion-button,
+.accordion-collapse{
+    background-color: rgb(0, 9, 69);
+    color: white;
+}
+
+/* 🔹 Footer */
+.footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+    background-color: #d84315;
+    color: white;
+}
+
+.footer div {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer ul {
+    list-style: none;
+}
+
+.footer a,
+.footer p{
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* 🔹 Estilo para las tarjetas */
+.card-horizontal {
+    display: flex;
+    flex-direction: row;
+    height: auto; /* Ajuste dinámico */
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-horizontal .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Asegura que los botones estén visibles */
+    padding: 15px;
+}
+
+.card-horizontal img {
+    width: 100%;
+    height: auto; /* Asegura que la imagen sea responsive */
+    object-fit: contain;
+    max-height: 190px;
+    margin: auto;
+}
+
+.btn-more {
+    margin: 5px 5px 0 0;
+    background-color: rgb(0, 9, 69);
+    color: white;
+    border: none;
+}
+
+.btn-more:hover {
+    background-color: rgb(0, 9, 69, 0.8);
+}
+
+.btn-group a {
+    width: auto;
+    text-align: center;
+    padding: 10px 20px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+
+.btn-success:hover {
+    background-color: #1e7e34;
+}
+
+/* 🔹 Asegura que los botones estén visibles y bien alineados */
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.card-body .btn-group {
+    margin-top: auto; /* Asegura que los botones estén al final */
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+/* Fondo de la sección de login */
+.login {
+    background-image: url("../images/img_viajeros3.jpg"); /* Ruta a tu imagen */
+    background-size: cover; /* Asegura que la imagen cubra todo el fondo */
+    background-position: center; /* Centra la imagen */
+    height: 100vh; /* Ocupa toda la altura visible de la pantalla */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Espaciado para pantallas pequeñas */
+}
+
+/* Contenedor del formulario */
+.login-box {
+    background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con opacidad */
+    border-radius: 15px; /* Bordes redondeados */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Sombra para resaltar */
+    padding: 30px; /* Espaciado interno */
+    max-width: 400px; /* Tamaño máximo del formulario */
+    width: 100%; /* Se adapta a pantallas pequeñas */
+}
+
+/* Títulos del formulario */
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgb(0, 9, 69); /* Color del título */
+    font-size: 1.8rem;
+}
+
+/* Estilo de los campos del formulario */
+.login-form .form-control {
+    border: 1px solid #ccc; /* Borde suave */
+    border-radius: 5px;
+    padding: 10px;
+}
+
+/* Botón de iniciar sesión */
+.login-form .btn-primary {
+    background-color: rgb(0, 9, 69); /* Color principal */
+    border: none;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.login-form .btn-primary:hover {
+    background-color: rgb(0, 7, 55); /* Color al pasar el cursor */
+}
+
+/* Estilo del enlace de registro */
+.login-form a {
+    color: rgb(0, 9, 69);
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.login-form a:hover {
+    color: rgb(0, 7, 55);
+}
+
+.reserva{
+    background-image: url("../images/img_viajeros3.jpg"); /* Ruta a tu imagen */
+    background-size: cover; /* Asegura que la imagen cubra todo el fondo */
+    background-position: center; /* Centra la imagen */
+    height: 100%; 
+    padding: 20px; /* Espaciado para pantallas pequeñas */
+}
+
+.container_reserva{
+    background-color: rgba(255, 255, 255, 0.7); /* Fondo blanco translúcido */
+    border-radius: 15px; /* Bordes redondeados */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* Sombra */
+    padding: 40px;
+    width: 100%; /* Asegura que se adapte a pantallas pequeñas */
+}
+
+/* 🔹 Fondo y ajuste general de la sección de registro */
+.registro {
+    background-image: url("../images/img_viajeros3.jpg"); /* Imagen de fondo */
+    background-size: cover; /* Ajusta la imagen para cubrir todo */
+    background-position: center; /* Centra la imagen */
+    min-height: calc(100vh - 120px); /* Resta el espacio ocupado por el header y el footer */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Espaciado interno para pantallas pequeñas */
+}
+
+/* Contenedor principal del formulario */
+.container_record {
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco translúcido */
+    border-radius: 15px; /* Bordes redondeados */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* Sombra */
+    padding: 40px;
+    max-width: 900px; /* Tamaño máximo */
+    width: 100%; /* Asegura que se adapte a pantallas pequeñas */
+}
+
+/* Títulos y textos */
+h2 {
+    text-align: center;
+    color: rgb(0, 9, 69); /* Azul oscuro */
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+p {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* Campos del formulario */
+.form-control,
+.form-select {
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+/* Botón de registro */
+.btn-registro {
+    background-color: rgb(0, 9, 69);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-registro:hover {
+    background-color: rgb(0, 7, 55);
+}
+
+/* Ajustes de columnas */
+.row .col {
+    padding: 0 10px;
+}
+
+/* Espaciado adicional entre filas */
+.row {
+    margin-bottom: 20px;
+}
+
+.img-container {
+    width: 100%; /* O el tamaño que necesites */
+    height: 150px; /* Ajusta según tu preferencia */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Para evitar que las imágenes sobresalgan */
+}
+
+.img-container img {
+    width: auto;
+    height: 100%;
+    object-fit: cover; /* Ajusta la imagen para que llene el espacio sin deformarse */
+}
+
+/* 🔹 RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    /* Header */
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    /* Navbar */
+    .secciones {
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Menú de reservas */
+    .menu_reserva {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Carrusel */
+    .carousel-item img {
+        height: 40vh;
+    }
+
+    /* Footer */
+    .footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .card-horizontal {
+        flex-direction: column; /* Apila los elementos en móviles */
+    }
+
+    .card-horizontal img {
+        padding: 5%;
+        height: 190px; /* Imagen más pequeña en móviles */
+    }
+
+    .card-horizontal .card-body {
+        align-items: center;
+        text-align: center;
+    }
+
+    .btn-more {
+        width: 100%; /* Botones ocupan todo el ancho en móviles */
+        margin: 10px 0;
+    }
+    .btn-group {
+        flex-direction: column; /* Apila los botones en móviles */
+        width: 100%;
+    }
+
+    .btn-group a {
+        width: 100%; /* Los botones ocupan todo el ancho */
+    }
+
+    .login-box {
+        padding: 20px; /* Reduce el padding en móviles */
+    }
+
+    .login-form h2 {
+        font-size: 1.5rem; /* Reduce el tamaño del título */
+    }
+
+    .login-form .btn-primary {
+        font-size: 0.9rem; /* Botón más compacto */
+    }
+
+    .container_record {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 0.9rem;
+    }
+
+    .row {
+        margin-bottom: 15px;
+    }
+    .carousel-inner {
+        height: auto;
+    }
+
+    .carousel-item img {
+        height: auto;
+        width: 100%;
+    }
+
+    .carousel-item h5 {
+        font-size: 1.5rem;
+    }
+
+    .carousel-item p {
+        font-size: 1rem;
+    }
+
+    .carousel-item .btn {
+        font-size: 1rem;
+        padding: 8px 15px;
+        width: 80%;
+    }
+}
